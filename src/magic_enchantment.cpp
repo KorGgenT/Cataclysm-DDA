@@ -196,6 +196,12 @@ void enchantment::add_activation( const time_duration &dur, const fake_spell &fa
     intermittent_activation[dur].emplace_back( fake );
 }
 
+void enchantment::bodypart_changes::load( const JsonObject &jo, const std::string &src )
+{
+    optional( jo, was_loaded, "gain", gain );
+    optional( jo, was_loaded, "lose", lose );
+}
+
 void enchantment::load( const JsonObject &jo, const std::string & )
 {
     optional( jo, was_loaded, "id", id, enchantment_id( "" ) );
@@ -232,6 +238,7 @@ void enchantment::load( const JsonObject &jo, const std::string & )
         ench_effects.emplace( efftype_id( jsobj.get_string( "effect" ) ), jsobj.get_int( "intensity" ) );
     }
 
+    optional( jo, was_loaded, "modified_bodyparts", modified_bodyparts );
     optional( jo, was_loaded, "mutations", mutations );
 
     if( jo.has_array( "values" ) ) {

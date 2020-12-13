@@ -173,7 +173,18 @@ class enchantment
         }
 
         bool operator==( const enchantment &rhs ) const;
+
+        struct bodypart_changes {
+            bodypart_id gain;
+            bodypart_id lose;
+
+            bool was_loaded;
+
+            void load( const JsonObject &jo, const std::string &src );
+        };
     private:
+        std::vector<bodypart_changes> modified_bodyparts;
+
         std::set<trait_id> mutations;
         cata::optional<emit_id> emitter;
         std::map<efftype_id, int> ench_effects;
