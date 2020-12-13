@@ -6704,6 +6704,16 @@
   },
   {
     "type": "mutation",
+    "id": "DEBUG_TAIL",
+    "name": { "str": "Debug Tail" },
+    "points": 99,
+    "valid": false,
+    "description": "Gain a tail bodypart",
+    "enchantments": [ "ENCH_DEBUG_TAIL" ],
+    "debug": true
+  },
+  {
+    "type": "mutation",
     "id": "DEBUG_NIGHTVISION",
     "name": { "str": "Debug Night Vision" },
     "points": 99,

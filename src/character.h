@@ -1147,7 +1147,8 @@ class Character : public Creature, public visitable
         void calc_encumbrance();
         /** Recalculate encumbrance for all body parts as if `new_item` was also worn. */
         void calc_encumbrance( const item &new_item );
-
+        // recalculates bodyparts based on enchantments modifying them and the default anatomy.
+        void recalculate_bodyparts();
         // recalculates enchantment cache by iterating through all held, worn, and wielded items
         void recalculate_enchantment_cache();
         // gets add and mult value from enchantment cache

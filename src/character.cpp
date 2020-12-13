@@ -9452,6 +9452,31 @@ mutation_category_id Character::get_highest_category() const
     return sMaxCat;
 }
 
+void Character::recalculate_bodyparts()
+{
+    body_part_set body_set;
+    for( const bodypart_id &bp : creature_anatomy->get_bodyparts() ) {
+        body_set.set( bp.id() );
+    }
+    body_set = enchantment_cache->modify_bodyparts( body_set );
+    std::vector<bodypart_str_id> remove;
+    // first come up with the bodyparts that need to be removed from body
+    for( auto bp_iter = body.begin(); bp_iter != body.end(); ) {
+        if( !body_set.test( bp_iter->first ) ) {
+            bp_iter = body.erase( bp_iter );
+        } else {
+            ++bp_iter;
+        }
+    }
+    // then add the parts in bodyset that are missing from body
+    for( const bodypart_str_id &bp : body_set ) {
+        if( body.find( bp ) == body.end() ) {
+            body[bp] = bodypart( bp );
+        }
+    }
+    calc_encumbrance();
+}
+
 void Character::recalculate_enchantment_cache()
 {
     // start by resetting the cache to all inventory items
@@ -9488,6 +9513,10 @@ void Character::recalculate_enchantment_cache()
                 enchantment_cache->force_add( ench );
             }
         }
+    }
+
+    if( enchantment_cache->modifies_bodyparts() ) {
+        recalculate_bodyparts();
     }
 }
 

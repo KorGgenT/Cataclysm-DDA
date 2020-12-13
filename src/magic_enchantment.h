@@ -174,13 +174,19 @@ class enchantment
 
         bool operator==( const enchantment &rhs ) const;
 
+        body_part_set modify_bodyparts( const body_part_set &unmodified ) const;
+        // does the enchantment modify bodyparts?
+        bool modifies_bodyparts() const;
+
         struct bodypart_changes {
-            bodypart_id gain;
-            bodypart_id lose;
+            bodypart_str_id gain;
+            bodypart_str_id lose;
 
             bool was_loaded;
 
-            void load( const JsonObject &jo, const std::string &src );
+            void serialize( JsonOut &jsout ) const;
+            void deserialize( JsonIn &jsin );
+            void load( const JsonObject &jo );
         };
     private:
         std::vector<bodypart_changes> modified_bodyparts;

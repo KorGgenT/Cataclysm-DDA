@@ -329,5 +329,26 @@
     "drench_capacity": 3,
     "smash_message": "You kick down the %s, smashing it.",
     "bionic_slots": 7
+  },
+  {
+    "id": "debug_tail",
+    "type": "body_part",
+    "name": "debug tail",
+    "name_multiple": "debug tails",
+    "heading": "DBG Tail",
+    "heading_multiple": "Tails",
+    "encumbrance_text": "Your debug tail feels heavy",
+    "hit_size": 1,
+    "hit_size_relative": [ 0, 0, 0 ],
+    "drench_capacity": 4,
+    "legacy_id": "NUM_BP",
+    "main_part": "debug_tail",
+    "hit_difficulty": 0.8,
+    "opposite_part": "debug_tail",
+    "side": "both",
+    "connected_to": "torso",
+    "accusative": { "ctxt": "bodypart_accusative", "str": "debug tail" },
+    "hp_bar_ui_text": "DBG TAIL",
+    "base_hp": 20
   }
 ]

@@ -646,7 +646,7 @@ class Creature : public location, public viewer
             return false;
         }
 
-    private:
+    protected:
         /**anatomy is the plan of the creature's body*/
         anatomy_id creature_anatomy = anatomy_id( "default_anatomy" );
         /**this is the actual body of the creature*/

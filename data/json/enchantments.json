@@ -11,5 +11,11 @@
     "condition": "ACTIVE",
     "ench_effects": [ { "effect": "invisibility", "intensity": 1 } ],
     "emitter": "emit_shadow_field"
+  },
+  {
+    "type": "enchantment",
+    "id": "ENCH_DEBUG_TAIL",
+    "condition": "ALWAYS",
+    "modified_bodyparts": [ { "gain": "debug_tail" } ]
   }
 ]
