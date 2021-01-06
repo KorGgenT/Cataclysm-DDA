@@ -1376,8 +1376,20 @@ float Character::stability_roll() const
 
 bool Character::is_dead_state() const
 {
-    return get_part_hp_cur( body_part_head ) <= 0 ||
-           get_part_hp_cur( body_part_torso ) <= 0;
+    // we want to warn the player with a debug message if they are invincible. this should be unimportant once wounds exist and bleeding is how you die.
+    bool has_vitals = false;
+    for( const bodypart_id &part : get_all_body_parts( get_body_part_flags::only_main ) ) {
+        if( part->is_vital ) {
+            if( get_part_hp_cur( part ) <= 0 ) {
+                return true;
+            }
+            has_vitals = true;
+        }
+    }
+    if( !has_vitals ) {
+        debugmsg( _( "WARNING!  Player has no vital part and is invincible." ) );
+    }
+    return false;
 }
 
 void Character::on_dodge( Creature *source, float difficulty )
@@ -1493,10 +1505,10 @@ int Character::get_working_arm_count() const
     }
 
     int limb_count = 0;
-    if( !is_limb_disabled( body_part_arm_l ) ) {
+    if( has_limb( body_part_arm_l ) && !is_limb_disabled( body_part_arm_l ) ) {
         limb_count++;
     }
-    if( !is_limb_disabled( body_part_arm_r ) ) {
+    if( has_limb( body_part_arm_r ) && !is_limb_disabled( body_part_arm_r ) ) {
         limb_count++;
     }
     if( has_bionic( bio_blaster ) && limb_count > 0 ) {
@@ -1510,13 +1522,23 @@ int Character::get_working_arm_count() const
 int Character::get_working_leg_count() const
 {
     int limb_count = 0;
-    if( !is_limb_broken( body_part_leg_l ) ) {
+    if( has_limb( body_part_leg_l ) && !is_limb_broken( body_part_leg_l ) ) {
         limb_count++;
     }
-    if( !is_limb_broken( body_part_leg_r ) ) {
+    if( has_limb( body_part_leg_r ) && !is_limb_broken( body_part_leg_r ) ) {
         limb_count++;
     }
     return limb_count;
+}
+
+bool Character::has_limb( const bodypart_id &limb ) const
+{
+    for( const bodypart_id &part : get_all_body_parts() ) {
+        if( part == limb ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Character::is_limb_disabled( const bodypart_id &limb ) const
@@ -6638,36 +6660,8 @@ void Character::update_bodytemp()
         // Loss of blood results in loss of body heat, 1% bodyheat lost per 2% hp lost
         mod_part_temp_conv( bp, - blood_loss( bp ) * get_part_temp_conv( bp ) / 200 );
 
-        // EQUALIZATION
-        static const std::pair<bodypart_str_id, bodypart_str_id> connections[] {
-            {body_part_torso, body_part_arm_l },
-            {body_part_torso, body_part_arm_r },
-            {body_part_torso, body_part_leg_l },
-            {body_part_torso, body_part_leg_r },
-            {body_part_torso, body_part_head },
-            {body_part_head, body_part_mouth },
-            {body_part_arm_l, body_part_hand_l },
-            {body_part_arm_r, body_part_hand_r },
-            {body_part_leg_l, body_part_foot_l },
-            {body_part_leg_r, body_part_foot_r }
-        };
-
-        bool equalized = false;
-        for( const auto &conn : connections ) {
-            if( bp == conn.first ) {
-                temp_equalizer( bp, conn.second );
-                equalized = true;
-            }
-            // connections are defined in one-direction only, but should work in both direction
-            if( bp == conn.second ) {
-                temp_equalizer( conn.second, bp );
-                equalized = true;
-            }
-        }
-        if( !equalized ) {
-            debugmsg( "Wacky body part temperature equalization!  Body part is not handled: %s",
-                      bp.id().str() );
-        }
+        temp_equalizer( bp, bp->connected_to );
+        temp_equalizer( bp, bp->main_part );
 
         // Climate Control eases the effects of high and low ambient temps
         if( has_climate_control ) {
@@ -7183,17 +7177,12 @@ bodypart_id Character::body_window( const std::string &menu_header,
         std::string name; // Translated name as it appears in the menu.
         int bonus;
     };
-    /* The array of the menu entries show to the player. The entries are displayed in this order,
-     * it may be changed here. */
-    std::array<healable_bp, 6> parts = { {
-            { false, body_part_head,  _( "Head" ), head_bonus },
-            { false, body_part_torso, _( "Torso" ), torso_bonus },
-            { false, body_part_arm_l, _( "Left Arm" ), normal_bonus },
-            { false, body_part_arm_r,  _( "Right Arm" ), normal_bonus },
-            { false, body_part_leg_l,  _( "Left Leg" ), normal_bonus },
-            { false, body_part_leg_r,  _( "Right Leg" ), normal_bonus },
-        }
-    };
+
+    std::vector<healable_bp> parts;
+    for( const bodypart_id &part : this->get_all_body_parts( get_body_part_flags::only_main ) ) {
+        // TODO: figure out how to do head and torso bonus?
+        parts.push_back( { false, part, part->name.translated(), normal_bonus } );
+    }
 
     int max_bp_name_len = 0;
     for( const healable_bp &e : parts ) {

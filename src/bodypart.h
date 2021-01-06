@@ -158,6 +158,8 @@ struct body_part_type {
         int base_hp = 60;
         stat_hp_mods hp_mods;
 
+        // if a limb is vital and at 0 hp, you die.
+        bool is_vital = false;
         bool is_limb = false;
 
         int drench_max = 0;
