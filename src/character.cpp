@@ -4734,6 +4734,10 @@ void Character::item_encumb( std::map<bodypart_id, encumbrance_data> &vals,
 
 int Character::encumb( const bodypart_id &bp ) const
 {
+    if( !has_part( bp ) ) {
+        debugmsg( "INFO: Tried to check encumbrance of a bodypart that does not exist." );
+        return 0;
+    }
     return get_part_encumbrance_data( bp ).encumbrance;
 }
 
@@ -10492,30 +10496,43 @@ bool Character::wearing_something_on( const bodypart_id &bp ) const
 
 bool Character::is_wearing_shoes( const side &which_side ) const
 {
-    bool left = true;
-    bool right = true;
-    if( which_side == side::LEFT || which_side == side::BOTH ) {
-        left = false;
-        for( const item &worn_item : worn ) {
-            if( worn_item.covers( body_part_foot_l ) && !worn_item.has_flag( flag_BELTED ) &&
-                !worn_item.has_flag( flag_PERSONAL ) && !worn_item.has_flag( flag_AURA ) &&
-                !worn_item.has_flag( flag_SEMITANGIBLE ) && !worn_item.has_flag( flag_SKINTIGHT ) ) {
-                left = true;
-                break;
+    /**
+     * nullopt - you have no foot
+     * true - you have a shoe
+     * false - you have no shoe but you have a foot
+     */
+
+    cata::optional<bool> left = cata::nullopt;
+    cata::optional<bool> right = cata::nullopt;
+    const bool left_side = which_side == side::LEFT || which_side == side::BOTH;
+    const bool right_side = which_side == side::RIGHT || which_side == side::BOTH;
+    const auto not_exempt = []( const item & worn_item ) {
+        return !worn_item.has_flag( flag_BELTED ) &&
+               !worn_item.has_flag( flag_PERSONAL ) && !worn_item.has_flag( flag_AURA ) &&
+               !worn_item.has_flag( flag_SEMITANGIBLE ) && !worn_item.has_flag( flag_SKINTIGHT );
+    };
+
+    for( const item &worn_item : worn ) {
+        for( const bodypart_id &part : get_all_body_parts() ) {
+            if( part->limb_type != body_part_type::type::foot ) {
+                continue;
+            }
+            if( !left_side && ( part->part_side == side::LEFT || part->part_side == side::BOTH ) ) {
+                left = worn_item.covers( part ) && not_exempt( worn_item );
+            }
+            if( !right_side && ( part->part_side == side::RIGHT || part->part_side == side::BOTH ) ) {
+                right = worn_item.covers( part ) && not_exempt( worn_item );
             }
         }
     }
-    if( which_side == side::RIGHT || which_side == side::BOTH ) {
-        right = false;
-        for( const item &worn_item : worn ) {
-            if( worn_item.covers( body_part_foot_r ) && !worn_item.has_flag( flag_BELTED ) &&
-                !worn_item.has_flag( flag_PERSONAL ) && !worn_item.has_flag( flag_AURA ) &&
-                !worn_item.has_flag( flag_SEMITANGIBLE ) && !worn_item.has_flag( flag_SKINTIGHT ) ) {
-                right = true;
-                break;
-            }
-        }
+
+    if( right && !left.has_value() ) {
+        left = true;
     }
+    if( left && !right.has_value() ) {
+        right = true;
+    }
+
     return ( left && right );
 }
 
@@ -11840,6 +11857,75 @@ item &Character::item_with_best_of_quality( const quality_id &qid )
     return null_item_reference();
 }
 
+int Character::limb_health_movecost_modifier() const
+{
+    // the best hp score of all legs. 1 is full health
+    float leg_hi = 0.0f;
+    // the second best hp score of all legs. 1 is full health.
+    float leg_lo = 0.0f;
+
+    for( const bodypart_id &part : get_all_body_parts() ) {
+        if( part->limb_type == body_part_type::type::leg ) {
+            const float cur_leg = static_cast<float>( get_part_hp_cur( part ) ) /
+                                  static_cast<float>( get_part_hp_max( part ) );
+            if( cur_leg > leg_hi ) {
+                leg_lo = leg_hi;
+                leg_hi = cur_leg;
+            }
+        }
+        if( leg_hi == 1.0f && leg_lo == 1.0f ) {
+            break;
+        }
+    }
+
+    return 50 * ( 1 - std::sqrt( leg_hi ) ) +
+           50 * ( 1 - std::sqrt( leg_lo ) );
+}
+
+int Character::foot_encumbrance_movecost_modifier() const
+{
+    // the lowest encumbered leg
+    cata::optional<int> encumb_leg_lo = cata::nullopt;
+    // the second lowest encumbered leg
+    cata::optional<int> encumb_leg_hi = cata::nullopt;
+    // the lowest encumbered foot
+    cata::optional<int> encumb_foot_lo = cata::nullopt;
+    // the second lowest encumbered foot
+    cata::optional<int> encumb_foot_hi = cata::nullopt;
+
+    for( const bodypart_id &part : get_all_body_parts() ) {
+        if( part->limb_type == body_part_type::type::leg ) {
+            const int leg_encumb = encumb( part );
+            if( !encumb_leg_lo ) {
+                encumb_leg_lo = leg_encumb;
+            } else if( *encumb_leg_lo > leg_encumb ) {
+                encumb_leg_hi = encumb_leg_lo;
+                encumb_leg_hi = leg_encumb;
+            }
+        } else if( part->limb_type == body_part_type::type::foot ) {
+            const int foot_encumb = encumb( part );
+            if( !encumb_foot_lo ) {
+                encumb_foot_lo = foot_encumb;
+            } else if( *encumb_foot_lo > foot_encumb ) {
+                encumb_foot_hi = encumb_foot_lo;
+                encumb_foot_hi = foot_encumb;
+            }
+        }
+    }
+
+    /**
+     * since we're doing a min function but still want to zero out encumbrance,
+     * optional seems the easiest way to go here rather than using INT_MAX which
+     * would do the same thing.
+     */
+    const int encumb_feet = !!encumb_foot_hi ? *encumb_foot_hi : 0 +
+                            !!encumb_foot_lo ? *encumb_foot_lo : 0;
+    const int encumb_legs = !!encumb_leg_hi ? *encumb_leg_hi : 0 +
+                            !!encumb_leg_lo ? *encumb_leg_lo : 0;
+
+    return ( encumb_feet * 2.5 + encumb_legs * 1.5 ) / 10;
+}
+
 int Character::run_cost( int base_cost, bool diag ) const
 {
     float movecost = static_cast<float>( base_cost );
@@ -11867,10 +11953,7 @@ int Character::run_cost( int base_cost, bool diag ) const
         }
 
         // Linearly increase move cost relative to individual leg hp.
-        movecost += 50 * ( 1 - std::sqrt( static_cast<float>( get_part_hp_cur( body_part_leg_l ) ) /
-                                          static_cast<float>( get_part_hp_max( body_part_leg_l ) ) ) );
-        movecost += 50 * ( 1 - std::sqrt( static_cast<float>( get_part_hp_cur( body_part_leg_r ) ) /
-                                          static_cast<float>( get_part_hp_max( body_part_leg_r ) ) ) );
+        movecost += limb_health_movecost_modifier();
 
         movecost *= mutation_value( "movecost_modifier" );
         if( flatground ) {
@@ -11921,9 +12004,7 @@ int Character::run_cost( int base_cost, bool diag ) const
             }
         }
 
-        movecost +=
-            ( ( encumb( body_part_foot_l ) + encumb( body_part_foot_r ) ) * 2.5 +
-              ( encumb( body_part_leg_l ) + encumb( body_part_leg_r ) ) * 1.5 ) / 10;
+        movecost += foot_encumbrance_movecost_modifier();
 
         // ROOTS3 does slow you down as your roots are probing around for nutrients,
         // whether you want them to or not.  ROOTS1 is just too squiggly without shoes

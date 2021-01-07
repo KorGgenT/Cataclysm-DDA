@@ -62,6 +62,31 @@ std::string enum_to_string<side>( side data )
     abort();
 }
 
+template<>
+std::string enum_to_string<body_part_type::type>( body_part_type::type data )
+{
+    switch( data ) {
+        // *INDENT-OFF*
+        case body_part_type::type::arm: return "arm";
+        case body_part_type::type::extremity: return "extremity";
+        case body_part_type::type::foot: return "foot";
+        case body_part_type::type::hand: return "hand";
+        case body_part_type::type::head: return "head";
+        case body_part_type::type::leg: return "leg";
+        case body_part_type::type::mouth: return "mouth";
+        case body_part_type::type::sensor: return "sensor";
+        case body_part_type::type::tail: return "tail";
+        case body_part_type::type::torso: return "torso";
+        case body_part_type::type::vital: return "vital";
+        case body_part_type::type::wing: return "wing";
+            // *INDENT-ON*
+        case body_part_type::type::num_types:
+            break;
+    }
+    debugmsg( "Invalid body part type." );
+    abort();
+}
+
 } // namespace io
 
 namespace
@@ -215,6 +240,7 @@ void body_part_type::load( const JsonObject &jo, const std::string & )
 
     optional( jo, was_loaded, "is_limb", is_limb, false );
     optional( jo, was_loaded, "is_vital", is_vital, false );
+    mandatory( jo, was_loaded, "limb_type", limb_type );
     mandatory( jo, was_loaded, "drench_capacity", drench_max );
 
     optional( jo, was_loaded, "legacy_id", legacy_id, "BP_NULL" );
