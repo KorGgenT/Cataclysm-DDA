@@ -2686,8 +2686,10 @@ int Character::get_standard_stamina_cost( item *thrown_item )
     //If the item is thrown, override with the thrown item instead.
     const int weight_cost = ( thrown_item == nullptr ) ? this->weapon.weight() /
                             ( 16_gram ) : thrown_item->weight() / ( 16_gram );
-    const int encumbrance_cost = this->encumb( body_part_arm_l ) + this->encumb(
-                                     body_part_arm_r );
+    int encumbrance_cost = 0;
+    for( const bodypart_id &part : get_all_body_parts_of_type( body_part_type::type::arm ) ) {
+        encumbrance_cost += encumb( part );
+    }
     return ( weight_cost + encumbrance_cost + 50 ) * -1;
 }
 
@@ -4730,6 +4732,21 @@ void Character::item_encumb( std::map<bodypart_id, encumbrance_data> &vals,
         // Add armor and layering penalties for the final values
         elem.encumbrance += elem.armor_encumbrance + elem.layer_penalty;
     }
+}
+
+int Character::avg_encumb_of_limb_type( body_part_type::type part_type ) const
+{
+    float limb_encumb = 0.0f;
+    int num_limbs = 0;
+    for( const bodypart_id &part : get_all_body_parts_of_type( part_type ) ) {
+        limb_encumb += encumb( part );
+        num_limbs++;
+    }
+    if( num_limbs == 0 ) {
+        return 0;
+    }
+    limb_encumb /= num_limbs;
+    return std::round( limb_encumb );
 }
 
 int Character::encumb( const bodypart_id &bp ) const
@@ -9021,9 +9038,18 @@ int Character::item_handling_cost( const item &it, bool penalties, int base_cost
 
     // For single handed items use the least encumbered hand
     if( it.is_two_handed( *this ) ) {
-        mv += encumb( body_part_hand_l ) + encumb( body_part_hand_r );
+        for( const bodypart_id &part : get_all_body_parts_of_type( body_part_type::type::hand ) ) {
+            mv += encumb( part );
+        }
     } else {
-        mv += std::min( encumb( body_part_hand_l ), encumb( body_part_hand_r ) );
+        int min_encumb = INT_MAX;
+        for( const bodypart_id &part : get_all_body_parts_of_type( body_part_type::type::hand ) ) {
+            const int encumb_part = encumb( part );
+            if( encumb_part < min_encumb ) {
+                min_encumb = encumb_part;
+            }
+        }
+        mv += min_encumb;
     }
 
     return std::max( mv, 0 );

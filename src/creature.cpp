@@ -2120,6 +2120,17 @@ std::vector<bodypart_id> Creature::get_all_body_parts( get_body_part_flags flags
     return  all_bps;
 }
 
+bodypart_id Creature::get_root_body_part() const
+{
+    for( const bodypart_id &part : get_all_body_parts() ) {
+        if( part->connected_to == part->connected_to ) {
+            return part;
+        }
+    }
+    debugmsg( "ERROR: character has no root part" );
+    return body_part_head;
+}
+
 std::vector<bodypart_id> Creature::get_all_body_parts_of_type(
     body_part_type::type part_type, get_body_part_flags flags ) const
 {
@@ -2407,7 +2418,7 @@ bodypart_id Creature::select_body_part( Creature *source, int hit_roll ) const
     add_msg_debug( "target size = %d", get_size() );
     add_msg_debug( "difference = %d", szdif );
 
-    return anatomy_human_anatomy->select_body_part( szdif, hit_roll );
+    return anatomy( get_all_body_parts() ).select_body_part( szdif, hit_roll );
 }
 
 bodypart_id Creature::random_body_part( bool main_parts_only ) const
