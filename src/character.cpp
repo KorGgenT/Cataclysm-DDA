@@ -7186,7 +7186,7 @@ float Character::get_hit_base() const
 
 bodypart_id Character::body_window( const std::string &menu_header,
                                     bool show_all, bool precise,
-                                    int normal_bonus, int head_bonus, int torso_bonus,
+                                    int normal_bonus, int /* head_bonus */, int /* torso_bonus */,
                                     int bleed, float bite, float infect, float bandage_power, float disinfectant_power ) const
 {
     /* This struct establishes some kind of connection between the hp_part (which can be healed and
