@@ -9044,10 +9044,7 @@ int Character::item_handling_cost( const item &it, bool penalties, int base_cost
     } else {
         int min_encumb = INT_MAX;
         for( const bodypart_id &part : get_all_body_parts_of_type( body_part_type::type::hand ) ) {
-            const int encumb_part = encumb( part );
-            if( encumb_part < min_encumb ) {
-                min_encumb = encumb_part;
-            }
+            min_encumb = std::min( min_encumb, encumb( part ) );
         }
         mv += min_encumb;
     }
