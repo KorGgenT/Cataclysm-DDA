@@ -1698,7 +1698,7 @@ void debug()
             smenu.query();
             bodypart_id part;
             int dbg_damage;
-            if( smenu.ret >= 0 && smenu.ret <= parts.size() ) {
+            if( smenu.ret >= 0 && static_cast<std::size_t>( smenu.ret ) <= parts.size() ) {
                 part = parts.at( smenu.ret );
             }
             if( query_int( dbg_damage, _( "Damage self for how much?  hp: %s" ), part.id().c_str() ) ) {
