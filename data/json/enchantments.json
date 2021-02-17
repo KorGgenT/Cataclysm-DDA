@@ -22,6 +22,16 @@
     "type": "enchantment",
     "id": "ENCH_DEBUG_ONLY_HEAD",
     "condition": "ALWAYS",
-    "modified_bodyparts": [ { "lose": "torso" }, { "lose": "arm_l" }, { "lose": "arm_r" }, { "lose": "leg_l" }, { "lose": "leg_r" }, { "lose": "foot_r" }, { "lose": "foot_l" }, { "lose": "hand_l" }, { "lose": "hand_r" } ]
+    "modified_bodyparts": [
+      { "lose": "torso" },
+      { "lose": "arm_l" },
+      { "lose": "arm_r" },
+      { "lose": "leg_l" },
+      { "lose": "leg_r" },
+      { "lose": "foot_r" },
+      { "lose": "foot_l" },
+      { "lose": "hand_l" },
+      { "lose": "hand_r" }
+    ]
   }
 ]
