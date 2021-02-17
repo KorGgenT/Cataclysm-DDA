@@ -11944,10 +11944,8 @@ int Character::foot_encumbrance_movecost_modifier() const
      * optional seems the easiest way to go here rather than using INT_MAX which
      * would do the same thing.
      */
-    const int encumb_feet = !!encumb_foot_hi ? *encumb_foot_hi : 0 +
-                            !!encumb_foot_lo ? *encumb_foot_lo : 0;
-    const int encumb_legs = !!encumb_leg_hi ? *encumb_leg_hi : 0 +
-                            !!encumb_leg_lo ? *encumb_leg_lo : 0;
+    const int encumb_feet = encumb_foot_hi.value_or( 0 ) + encumb_foot_lo.value_or( 0 );
+    const int encumb_legs = encumb_leg_hi.value_or( 0 ) + encumb_leg_lo.value_or( 0 );
 
     return ( encumb_feet * 2.5 + encumb_legs * 1.5 ) / 10;
 }
