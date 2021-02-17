@@ -10549,14 +10549,14 @@ bool Character::is_wearing_shoes( const side &which_side ) const
         }
     }
 
-    if( right && !left.has_value() ) {
+    if( right.has_value() && *right && !left.has_value() ) {
         left = true;
     }
-    if( left && !right.has_value() ) {
+    if( left.has_value() && *left && !right.has_value() ) {
         right = true;
     }
 
-    return ( left && right );
+    return *left && *right;
 }
 
 bool Character::is_wearing_helmet() const
