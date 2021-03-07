@@ -1691,8 +1691,8 @@ void debug()
             uilist smenu;
             int i = 0;
             for( const bodypart_id &part : parts ) {
-                smenu.addentry( i, true, ' ', string_format( "%s: %d",
-                                part->name.translated(), player_character.get_part_hp_cur( part ) ).c_str() );
+                smenu.addentry( i, true, ' ', "%s: %d",
+                                part->name.translated(), player_character.get_part_hp_cur( part ) );
                 i++;
             }
             smenu.query();
