@@ -2123,7 +2123,7 @@ std::vector<bodypart_id> Creature::get_all_body_parts( get_body_part_flags flags
 bodypart_id Creature::get_root_body_part() const
 {
     for( const bodypart_id &part : get_all_body_parts() ) {
-        if( part->connected_to == part->connected_to ) {
+        if( part->connected_to == part->main_part ) {
             return part;
         }
     }
