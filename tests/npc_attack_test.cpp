@@ -169,42 +169,48 @@ TEST_CASE( "Test NPC attack variants' potential", "[npc_attack]" )
         SECTION( "2x4" ) {
             const npc_attack_melee_test_data twobyfour{
                 itype_id( "test_2x4" ),
-                35, 71, 24
+                35, 71, 24,
+                -1, -1, -1
             };
             test_melee_attacks( twobyfour );
         }
         SECTION( "pipe" ) {
             const npc_attack_melee_test_data pipe{
                 itype_id( "test_pipe" ),
-                68, 136, 45
+                68, 136, 45,
+                -1, -1, -1
             };
             test_melee_attacks( pipe );
         }
         SECTION( "fire_ax" ) {
             const npc_attack_melee_test_data fire_ax{
                 itype_id( "test_fire_ax" ),
-                141, 283, 94
+                141, 283, 94,
+                -1, -1, -1
             };
             test_melee_attacks( fire_ax );
         }
         SECTION( "clumsy_sword" ) {
             const npc_attack_melee_test_data clumsy_sword{
                 itype_id( "test_clumsy_sword" ),
-                227, 454, 151
+                227, 454, 151,
+                -1, -1, -1
             };
             test_melee_attacks( clumsy_sword );
         }
         SECTION( "normal_sword" ) {
             const npc_attack_melee_test_data normal_sword{
                 itype_id( "test_normal_sword" ),
-                291, 582, 194
+                291, 582, 194,
+                -1, -1, -1
             };
             test_melee_attacks( normal_sword );
         }
         SECTION( "balanced_sword" ) {
             const npc_attack_melee_test_data balanced_sword{
                 itype_id( "test_balanced_sword" ),
-                346, 692, 231
+                346, 692, 231,
+                -1, -1, -1
             };
             test_melee_attacks( balanced_sword );
         }
