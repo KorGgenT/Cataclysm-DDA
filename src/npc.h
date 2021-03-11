@@ -1280,7 +1280,7 @@ class npc : public player
 
         npc_short_term_cache ai_cache;
     public:
-        const std::shared_ptr<npc_attack> get_current_attack() const {
+        const std::shared_ptr<npc_attack> &get_current_attack() const {
             return ai_cache.current_attack;
         }
         /**
