@@ -10,8 +10,8 @@
 
 static const mtype_id mon_zombie( "mon_zombie" );
 
-constexpr point main_npc_start{ 50, 50 };
-constexpr tripoint main_npc_start_tripoint{ main_npc_start, 0 };
+static constexpr point main_npc_start{ 50, 50 };
+static constexpr tripoint main_npc_start_tripoint{ main_npc_start, 0 };
 
 namespace npc_attack_setup
 {
