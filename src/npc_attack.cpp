@@ -503,7 +503,7 @@ npc_attack_effectiveness npc_attack_throw::evaluate_tripoint(
         attitude_mult = npc_attack_constants::attitude_multiplier.at( Creature::Attitude::NEUTRAL );
     }
     double potential = dps * attitude_mult - distance_penalty;
-    if( damage >= critter->get_hp() ) {
+    if( critter && damage >= critter->get_hp() ) {
         potential *= npc_attack_constants::kill_modifier;
     }
     if( !target || !critter ) {
