@@ -28,7 +28,7 @@ const int base_time_penalty = 3;
 // we want this out of our hands, pronto.
 // give a large buff to the attack value so it prioritizes this
 const int base_throw_now = 10'000;
-} // npc_attack_constants
+} // namespace npc_attack_constants
 
 // TODO: make a better, more generic "check if this projectile is blocked" function
 // TODO: put this in a namespace for reuse
