@@ -44,7 +44,7 @@ static void spawn_zombie_at_range( const int range )
 {
     g->place_critter_at( mon_zombie, main_npc_start_tripoint + tripoint( range, 0, 0 ) );
 }
-}
+} // namespace npc_attack_setup
 
 struct npc_attack_melee_test_data {
     itype_id weapon_id;
