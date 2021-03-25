@@ -373,10 +373,10 @@ struct points_left {
     int stat_points_left() const;
     int trait_points_left() const;
     int skill_points_left() const;
-    bool is_freeform();
-    bool is_valid();
+    bool is_freeform() const;
+    bool is_valid() const;
     bool has_spare();
-    std::string to_string();
+    std::string to_string() const;
 };
 
 #endif // CATA_SRC_AVATAR_H

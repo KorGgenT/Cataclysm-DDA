@@ -3449,5 +3449,15 @@
     "category": "NEW_CHAR_TRAITS",
     "name": "Sort traits list",
     "bindings": [ { "input_method": "keyboard_any", "key": "s" } ]
+  },
+  {
+    "type": "keybinding",
+    "id": "EDIT",
+    "category": "NEW_CHAR_SCREEN",
+    "name": "Select a field to edit in the new character screen",
+    "bindings": [
+      { "input_method": "keyboard_any", "key": "RETURN" },
+      { "input_method": "keyboard_code", "key": "KEYPAD_ENTER" }
+    ]
   }
 ]

@@ -1855,12 +1855,12 @@ int points_left::skill_points_left() const
     return stat_points + trait_points + skill_points;
 }
 
-bool points_left::is_freeform()
+bool points_left::is_freeform() const
 {
     return limit == FREEFORM;
 }
 
-bool points_left::is_valid()
+bool points_left::is_valid() const
 {
     return is_freeform() ||
            ( stat_points_left() >= 0 && trait_points_left() >= 0 &&
@@ -1872,7 +1872,7 @@ bool points_left::has_spare()
     return !is_freeform() && is_valid() && skill_points_left() > 0;
 }
 
-std::string points_left::to_string()
+std::string points_left::to_string() const
 {
     if( limit == MULTI_POOL ) {
         return string_format(

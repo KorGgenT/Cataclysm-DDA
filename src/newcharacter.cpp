@@ -62,6 +62,99 @@
 #include "veh_type.h"
 #include "worldfactory.h"
 
+/**
+ * that class is for use with menus that have 2d position needs for cursors. it adds some wrapping functionality.
+ * 0 is always the minimum because 0,0 is the top left hand corner of a window.
+ */
+class cursor_position
+{
+        point pos;
+        point max_values;
+    public:
+        cursor_position() = default;
+        cursor_position( const point &max_values ) : max_values( max_values ) {}
+        point get() const {
+            return pos;
+        }
+        point operator+=( const point &value ) {
+            pos += value;
+
+            pos.x %= max_values.x + 1;
+            if( pos.x < 0 ) {
+                pos.x += max_values.x + 1;
+            }
+            pos.y %= max_values.y + 1;
+            if( pos.y < 0 ) {
+                pos.y += max_values.y + 1;
+            }
+            return pos;
+        }
+        point set_pos_to_max() {
+            pos = max_values;
+            return pos;
+        }
+        void set_pos_y( const int y ) {
+            pos.y = y;
+        }
+};
+
+/**
+ *
+ *  This is the current organization of the windows. please change this comment if it changes!
+ *  col1                     col2                     col3
+ *  (0,0)scenario                                     (2,0)name
+ *  (0,1)starting location                            (2,1)gender
+ *  (0,2)profession                                   (2,2)height
+ *                                                    (2,3)age
+ *                                                    (2,4)blood type
+ *                                                    (2,5)strength
+ *                                                    (2,6)dexterity
+ *                                                    (2,7)intelligence
+ *                                                    (2,8)perception
+ *  (0,9)traits              (1,9)skills
+ *                           ++                       (2,10)facial hair
+ *                           ++                       (2,11)hair
+ *                           ++                       (2,12)skin tone
+ */
+class new_character_windows
+{
+        catacurses::window background;
+        catacurses::window info_box;
+        catacurses::window points_box;
+        catacurses::window gear_box;
+        catacurses::window skills_box;
+        catacurses::window traits_box;
+        catacurses::window appearance_box;
+        catacurses::window scenario_box;
+        catacurses::window biometrics_box;
+        catacurses::window stats_box;
+
+        void draw_borders();
+        void draw_scenario_box( const avatar &you, const cursor_position &cursor );
+        void draw_traits_box( const avatar &you, const cursor_position &cursor );
+        void draw_skills_box( const avatar &you, const cursor_position &cursor );
+        void draw_biometrics_box( const avatar &you, const cursor_position &cursor );
+        void draw_stats_box( const avatar &you, const points_left &points, const cursor_position &cursor );
+        void draw_gear_box( const avatar &you );
+        void draw_points_box( const points_left &points, const cursor_position &cursor );
+    public:
+        new_character_windows() {
+            background = catacurses::newwin( TERMY, TERMX, point_zero );
+            scenario_box = catacurses::newwin( 25, 60, point(1,1) );
+            traits_box = catacurses::newwin( 30, 30, point( 1, 27 ) );
+            skills_box = catacurses::newwin( 30, 30, point( 31, 27 ) );
+            biometrics_box = catacurses::newwin( 5, 30, point( 62, 1 ) );
+            stats_box = catacurses::newwin( 5, 30, point( 62, 7 ) );
+            gear_box = catacurses::newwin( 20, 30, point( 93, 11 ) );
+            points_box = catacurses::newwin( 2, 30, point( 93, 1 ) );
+        }
+
+        cursor_position adjust_cursor( const cursor_position &cursor ) const;
+        void draw( const avatar &you, const points_left &points, const cursor_position &cursor );
+
+        void edit_highlighted( avatar &you, points_left &points, const cursor_position &cursor );
+};
+
 static const std::string flag_CHALLENGE( "CHALLENGE" );
 static const std::string flag_CITY_START( "CITY_START" );
 static const std::string flag_SECRET( "SECRET" );
@@ -114,6 +207,8 @@ static constexpr int HIGH_STAT = 12;
 static constexpr int NEWCHAR_TAB_MAX = 6;
 
 static int skill_increment_cost( const Character &u, const skill_id &skill );
+static std::string item_list_string( const std::list<item> &item_list );
+static void draw_points( const catacurses::window &w, const points_left &points, int netPointCost );
 
 enum struct tab_direction {
     NONE,
@@ -129,6 +224,56 @@ static tab_direction set_scenario( avatar &u, points_left &points, tab_direction
 static tab_direction set_profession( avatar &u, points_left &points, tab_direction direction );
 static tab_direction set_skills( avatar &u, points_left &points );
 static tab_direction set_description( avatar &you, bool allow_reroll, points_left &points );
+
+static void choose_location( avatar &you )
+{
+    uilist select_location;
+    select_location.text = _( "Select a starting location." );
+    int offset = 1;
+    const std::string random_start_location_text = string_format( ngettext(
+                "<color_red>* Random location *</color> (<color_white>%d</color> variant)",
+                "<color_red>* Random location *</color> (<color_white>%d</color> variants)",
+                get_scenario()->start_location_targets_count() ), get_scenario()->start_location_targets_count() );
+    uilist_entry entry_random_start_location( INT_MIN, true, -1,
+            random_start_location_text );
+    select_location.entries.emplace_back( entry_random_start_location );
+    for( const auto &loc : start_locations::get_all() ) {
+        if( get_scenario()->allowed_start( loc.id ) ) {
+            std::string loc_name = loc.name();
+            if( loc.targets_count() > 1 ) {
+                loc_name = string_format( ngettext( "%s (<color_white>%d</color> variant)",
+                                                    "%s (<color_white>%d</color> variants)", loc.targets_count() ),
+                                          loc_name, loc.targets_count() );
+            }
+
+            uilist_entry entry( loc.id.id().to_i(), true, -1, loc_name );
+
+            select_location.entries.emplace_back( entry );
+
+            if( !you.random_start_location && loc.id.id() == you.start_location.id() ) {
+                select_location.selected = offset;
+            }
+            offset++;
+        }
+    }
+    if( you.random_start_location ) {
+        select_location.selected = 0;
+    }
+    select_location.setup();
+
+    select_location.query();
+    if( select_location.ret == INT_MIN ) {
+        you.random_start_location = true;
+    } else if( select_location.ret >= 0 ) {
+        for( const auto &loc : start_locations::get_all() ) {
+            if( loc.id.id().to_i() == select_location.ret ) {
+                you.random_start_location = false;
+                you.start_location = loc.id;
+                break;
+            }
+        }
+    }
+}
 
 static cata::optional<std::string> query_for_template_name();
 static void reset_scenario( avatar &u, const scenario *scen );
@@ -479,6 +624,11 @@ bool avatar::create( character_type type, const std::string &tempname )
     set_body();
     const bool allow_reroll = type == character_type::RANDOM;
     tab_direction result = tab_direction::QUIT;
+    cursor_position cursor( point( 2, 20 ) );
+    new_character_windows all_windows;
+    input_context ctxt( "NEW_CHAR_SCREEN" );
+    ctxt.register_cardinal();
+    ctxt.register_action( "EDIT" );
     do {
         if( !interactive ) {
             // no window is created because "Play now" does not require any configuration
@@ -489,55 +639,22 @@ bool avatar::create( character_type type, const std::string &tempname )
             break;
         }
 
-        if( points.limit == points_left::TRANSFER ) {
-            tab = 6;
-        }
+        all_windows.draw( *this, points, cursor );
 
-        switch( tab ) {
-            case 0:
-                result = set_points( *this, points );
-                break;
-            case 1:
-                result = set_scenario( *this, points, result );
-                break;
-            case 2:
-                result = set_profession( *this, points, result );
-                break;
-            case 3:
-                result = set_stats( *this, points );
-                break;
-            case 4:
-                result = set_traits( *this, points );
-                break;
-            case 5:
-                result = set_skills( *this, points );
-                break;
-            case 6:
-                result = set_description( *this, allow_reroll, points );
-                break;
-        }
+        const std::string action = ctxt.handle_input();
 
-        switch( result ) {
-            case tab_direction::NONE:
-                break;
-            case tab_direction::FORWARD:
-                tab++;
-                break;
-            case tab_direction::BACKWARD:
-                tab--;
-                break;
-            case tab_direction::QUIT:
-                tab = -1;
-                break;
+        if( action == "UP" ) {
+            cursor += point_north;
+        } else if( action == "DOWN" ) {
+            cursor += point_south;
+        } else if( action == "LEFT" ) {
+            cursor += point_west;
+        } else if( action == "RIGHT" ) {
+            cursor += point_east;
+        } else if( action == "EDIT" ) {
+            all_windows.edit_highlighted( *this, points, cursor );
         }
-
-        if( !( tab >= 0 && tab <= NEWCHAR_TAB_MAX ) ) {
-            if( tab != -1 && nameExists( name ) ) {
-                tab = NEWCHAR_TAB_MAX;
-            } else {
-                break;
-            }
-        }
+        cursor = all_windows.adjust_cursor( cursor );
 
     } while( true );
 
@@ -669,7 +786,7 @@ static void draw_character_tabs( const catacurses::window &w, const std::string 
     mvwputch( w, point( TERMX - 1, 4 ), BORDER_COLOR, LINE_XOXX ); // -|
 }
 
-static void draw_points( const catacurses::window &w, points_left &points, int netPointCost = 0 )
+static void draw_points( const catacurses::window &w, const points_left &points, int netPointCost = 0 )
 {
     // Clear line (except borders)
     mvwprintz( w, point( 2, 3 ), c_black, std::string( getmaxx( w ) - 3, ' ' ) );
@@ -694,6 +811,450 @@ void draw_sorting_indicator( const catacurses::window &w_sorting, const input_co
                                   "(Press <color_light_green>%2$s</color> to change sorting.)" ),
                                sort_order, ctxt.get_desc( "SORT" ) );
     fold_and_print( w_sorting, point_zero, ( TERMX / 2 ), c_light_gray, sort_text );
+}
+
+cursor_position new_character_windows::adjust_cursor( const cursor_position &cursor ) const
+{
+    const int x = cursor.get().x;
+    const int y = cursor.get().y;
+
+    int y_adjusted = y;
+    switch( x ) {
+        case 0: {
+            if( y > 2 && y < 9 ) {
+                y_adjusted = 9;
+            } else if( y > 9 ) {
+                y_adjusted = 0;
+            } else if( y < 0 ) {
+                y_adjusted = 9;
+            }
+            break;
+        }
+        case 1: {
+            if( y < 9 ) {
+                y_adjusted = 9;
+            }
+            break;
+        }
+        case 2: {
+            if( y > 12 ) {
+                y_adjusted = 0;
+            } else if( y < 0 ) {
+                y_adjusted = 12;
+            }
+            break;
+        }
+    }
+    cursor_position temp( cursor );
+    temp.set_pos_y( y_adjusted );
+    return temp;
+}
+
+void new_character_windows::draw_traits_box( const avatar &you, const cursor_position &cursor )
+{
+    werase( traits_box );
+
+    const std::string white = "<color_white>";
+    const std::string highlight = "<color_h_white>";
+    std::string trait_highlight = white;
+    if( cursor.get() == point( 0, 9 ) ) {
+        trait_highlight = highlight;
+    }
+
+    fold_and_print( traits_box, point_zero, 30, c_white, string_format( _( "%sTraits:</color>" ),
+                    trait_highlight ) );
+    int mut_pos = 1;
+    for( const trait_id &mut_id : you.get_mutations() ) {
+        mvwprintz( traits_box, point( 1, mut_pos ), mut_id->get_display_color(), mut_id->name() );
+        mut_pos++;
+    }
+
+    wrefresh( traits_box );
+}
+
+void new_character_windows::draw_skills_box( const avatar &you, const cursor_position &cursor )
+{
+    werase( skills_box );
+
+    const std::string white = "<color_white>";
+    const std::string highlight = "<color_h_white>";
+    std::string trait_highlight = white;
+    if( cursor.get() == point( 1, 9 ) ) {
+        trait_highlight = highlight;
+    }
+
+    fold_and_print( skills_box, point_zero, 30, c_white, string_format( _( "%sSkills:</color>" ),
+                    trait_highlight ) );
+
+    std::map<skill_id, int> prof_skills;
+    for( const profession::StartingSkill &sk : you.prof->skills() ) {
+        prof_skills[sk.first] = sk.second;
+    }
+    std::map<skill_id, int> cur_skills = prof_skills;
+    for( const std::pair<skill_id, SkillLevel> &sk : you.get_all_skills() ) {
+        cur_skills[sk.first] += sk.second.level();
+    }
+
+    int skill_pos = 1;
+    for( const std::pair<skill_id, int> &sk : cur_skills ) {
+        std::string skill_highlight = white;
+        if( cursor.get() == point( 1, 9 + skill_pos ) ) {
+            skill_highlight = highlight;
+        }
+
+        const int skill_min = prof_skills[sk.first];
+        const int current_skill_level = sk.second;
+
+        mvwprintz( skills_box, point( 1, skill_pos ), c_light_gray, sk.first->name() );
+
+        nc_color left_arrow_color = c_light_green;
+        char left_arrow = '<';
+        if( skill_min == 0 && current_skill_level <= 2 ) {
+            left_arrow_color = c_light_red;
+            left_arrow = 'x';
+        } else if( skill_min == current_skill_level ) {
+            left_arrow_color = c_light_gray;
+        }
+
+        nc_color right_arrow_color = c_light_green;
+        char right_arrow = '>';
+        if( current_skill_level >= MAX_SKILL ) {
+            right_arrow_color = c_light_gray;
+        }
+
+        mvwputch( skills_box, point( 22, skill_pos ), left_arrow_color, left_arrow );
+        fold_and_print( skills_box, point( 23, skill_pos ), 2, c_light_gray,
+                        string_format( "%s%2d</color>", skill_highlight, current_skill_level ) );
+        mvwputch( skills_box, point( 25, skill_pos ), right_arrow_color, right_arrow );
+
+        skill_pos++;
+    }
+
+    wrefresh( skills_box );
+}
+
+void new_character_windows::draw_points_box( const points_left &points, const cursor_position &cursor )
+{
+    werase( points_box );
+
+    draw_points( points_box, points );
+
+    wrefresh( points_box );
+}
+
+void new_character_windows::draw_gear_box( const avatar &you )
+{
+    werase( gear_box );
+
+    fold_and_print( gear_box, point_zero, 30, c_light_gray,
+                    item_list_string( you.prof->items( you.male, you.get_mutations() ) ) );
+
+    wrefresh( gear_box );
+}
+
+void new_character_windows::draw_stats_box( const avatar &you, const points_left &points,
+        const cursor_position &cursor )
+{
+    werase( stats_box );
+    const int max_stat_points = points.is_freeform() ? 20 : MAX_STAT;
+    const int min_stat_points = 4;
+    const std::string white = "<color_white>";
+    const std::string highlight = "<color_h_white>";
+
+    std::string str_highlight = white;
+    if( cursor.get() == point( 2, 5 ) ) {
+        str_highlight = highlight;
+    }
+
+    std::string dex_highlight = white;
+    if( cursor.get() == point( 2, 6 ) ) {
+        dex_highlight = highlight;
+    }
+
+    std::string int_highlight = white;
+    if( cursor.get() == point( 2, 7 ) ) {
+        int_highlight = highlight;
+    }
+
+    std::string per_highlight = white;
+    if( cursor.get() == point( 2, 8 ) ) {
+        per_highlight = highlight;
+    }
+
+    mvwprintz( stats_box, point_zero, c_white, _( "Stats:" ) );
+
+    mvwprintz( stats_box, point( 0, 1 ), c_light_gray, _( "Strength:" ) );
+    fold_and_print( stats_box, point( 15, 1 ), 30, c_white,
+                    string_format( _( "%s<</color>%s%2d</color>%s></color>" ),
+                                   ( you.str_max <= 4 ? "<color_light_gray>" : "<color_light_green>" ),
+                                   str_highlight, you.str_max,
+                                   ( you.str_max >= max_stat_points ? "<color_light_gray>" : "<color_light_green>" ) ) );
+
+    mvwprintz( stats_box, point( 0, 2 ), c_light_gray, _( "Dexterity:" ) );
+    fold_and_print( stats_box, point( 15, 2 ), 30, c_white,
+                    string_format( _( "%s<</color>%s%2d</color>%s></color>" ),
+                                   ( you.dex_max <= 4 ? "<color_light_gray>" : "<color_light_green>" ),
+                                   dex_highlight, you.dex_max,
+                                   ( you.dex_max >= max_stat_points ? "<color_light_gray>" : "<color_light_green>" ) ) );
+
+
+    mvwprintz( stats_box, point( 0, 3 ), c_light_gray, _( "Intelligence:" ) );
+    fold_and_print( stats_box, point( 15, 3 ), 30, c_white,
+                    string_format( _( "%s<</color>%s%2d</color>%s></color>" ),
+                                   ( you.dex_max <= 4 ? "<color_light_gray>" : "<color_light_green>" ),
+                                   int_highlight, you.dex_max,
+                                   ( you.dex_max >= max_stat_points ? "<color_light_gray>" : "<color_light_green>" ) ) );
+
+
+    mvwprintz( stats_box, point( 0, 4 ), c_light_gray, _( "Perception:" ) );
+    fold_and_print( stats_box, point( 15, 4 ), 30, c_white,
+                    string_format( _( "%s<</color>%s%2d</color>%s></color>" ),
+                                   ( you.per_max <= 4 ? "<color_light_gray>" : "<color_light_green>" ),
+                                   per_highlight, you.per_max,
+                                   ( you.per_max >= max_stat_points ? "<color_light_gray>" : "<color_light_green>" ) ) );
+
+
+    wrefresh( stats_box );
+}
+
+void new_character_windows::draw_biometrics_box( const avatar &you, const cursor_position &cursor )
+{
+    werase( biometrics_box );
+
+    const std::string white = "<color_white>";
+    const std::string highlight = "<color_h_white>";
+
+    std::string name_highlight = white;
+    if( cursor.get() == point( 2, 0 ) ) {
+        name_highlight = highlight;
+    }
+
+    std::string gender_highlight = white;
+    if( cursor.get() == point( 2, 1 ) ) {
+        gender_highlight = highlight;
+    }
+
+    std::string height_highlight = white;
+    if( cursor.get() == point( 2, 2 ) ) {
+        height_highlight = highlight;
+    }
+
+    std::string age_highlight = white;
+    if( cursor.get() == point( 2, 3 ) ) {
+        age_highlight = highlight;
+    }
+
+    std::string blood_highlight = white;
+    if( cursor.get() == point( 2, 4 ) ) {
+        blood_highlight = highlight;
+    }
+
+    std::string name_display = you.name.empty() ? _( "--- RANDOM NAME ---" ) : you.name;
+    std::string blood_string = io::enum_to_string( you.my_blood_type ) + ( you.blood_rh_factor ? "+" :
+                               "-" );
+
+    fold_and_print( biometrics_box, point_zero, 30, c_light_gray, string_format( "%sName:</color> %s",
+                    name_highlight, name_display ) );
+    fold_and_print( biometrics_box, point( 0, 1 ), 30, c_light_gray,
+                    string_format( _( "%sGender:</color> %s" ), gender_highlight,
+                                   you.male ? _( "Male" ) : _( "Female" ) ) );
+    fold_and_print( biometrics_box, point( 0, 2 ), 30, c_light_gray,
+                    string_format( _( "%sHeight:</color> %s" ), height_highlight, you.height_string() ) );
+    fold_and_print( biometrics_box, point( 0, 3 ), 30, c_light_gray,
+                    string_format( _( "%sAge:</color> %d" ), age_highlight, you.age() ) );
+    fold_and_print( biometrics_box, point( 0, 4 ), 30, c_light_gray,
+                    string_format( _( "%sBlood Type:</color> %s" ), blood_highlight, blood_string ) );
+
+    wrefresh( biometrics_box );
+}
+
+void new_character_windows::draw_scenario_box( const avatar &you, const cursor_position &cursor )
+{
+    werase( scenario_box );
+
+    const std::string white = "<color_white>";
+    const std::string highlight = "<color_h_white>";
+
+    std::string scen_highlight = white;
+    if( cursor.get() == point_zero ) {
+        scen_highlight = highlight;
+    }
+
+    std::string loc_highlight = white;
+    if( cursor.get() == point( 0, 1 ) ) {
+        loc_highlight = highlight;
+    }
+
+    std::string prof_highlight = white;
+    if( cursor.get() == point( 0, 2 ) ) {
+        prof_highlight = highlight;
+    }
+
+    const std::string scenario_text = string_format(
+                                          _( "%sScenario:</color> <color_light_gray>%s</color>" ),
+                                          scen_highlight, get_scenario()->gender_appropriate_name( you.male ) );
+    fold_and_print( scenario_box, point_zero, 75, c_white, scenario_text );
+
+    const std::string random_start_location_text = string_format( ngettext(
+                "<color_red>* Random location *</color> (<color_white>%d</color> variant)",
+                "<color_red>* Random location *</color> (<color_white>%d</color> variants)",
+                get_scenario()->start_location_targets_count() ), get_scenario()->start_location_targets_count() );
+    std::string start_location_text = random_start_location_text;
+    if( !you.random_start_location ) {
+        start_location_text = string_format( ngettext( "%s (%d variant)", "%s (%d variants)",
+                                             you.start_location.obj().targets_count() ),
+                                             you.start_location.obj().name(), you.start_location.obj().targets_count() );
+    }
+    start_location_text = string_format( _( "%sStarting Location:</color> " ),
+                                         loc_highlight ) + start_location_text;
+    fold_and_print( scenario_box, point( 0, 1 ), 75, c_white, start_location_text );
+
+    const std::string profession_text = string_format( _( "%sProfession: %s" ),
+                                        prof_highlight, you.prof->gender_appropriate_name( you.male ) );
+
+    fold_and_print( scenario_box, point( 0, 2 ), 75, c_light_gray, profession_text );
+
+    const vproto_id scen_veh = get_scenario()->vehicle();
+    const vproto_id prof_veh = you.prof->vehicle();
+    std::string vehicle_string = "<color_red>None!</color>";
+    if( scen_veh ) {
+        vehicle_string = prof_veh->name.translated();
+    } else if( prof_veh ) {
+        vehicle_string = scen_veh->name.translated();
+    }
+    fold_and_print( scenario_box, point( 0, 3 ), 27, c_light_gray,
+                    string_format( _( "Starting vehicle: %s" ), vehicle_string ) );
+
+    const std::vector<addiction> prof_addictions = you.prof->addictions();
+    std::string addiction_string = "<color_red>None!</color>";
+    if( !prof_addictions.empty() ) {
+        std::vector<std::string> addiction_list;
+        for( const addiction &addict : prof_addictions ) {
+            addiction_list.push_back( addiction_name( addict ) );
+        }
+        addiction_string = enumerate_as_string( addiction_list );
+    }
+    fold_and_print( scenario_box, point( 0, 4 ), 75, c_light_gray,
+                    string_format( _( "Starting addictions: %s" ), addiction_string ) );
+
+    fold_and_print( scenario_box, point( 0, 5 ), 37, c_white, _( "Proficiencies:" ) );
+
+    std::vector<proficiency_id> prof_proficiencies = you.prof->proficiencies();
+    if( prof_proficiencies.empty() ) {
+        mvwprintz( scenario_box, point( 1, 6 ), c_light_red, _( "None!" ) );
+    } else {
+        point prof_pos( 1, 6 );
+        for( const proficiency_id &prof : prof_proficiencies ) {
+            mvwprintz( scenario_box, prof_pos, c_light_gray, trim_by_length( prof->name(), 31 ) );
+            prof_pos.y++;
+        }
+    }
+
+    fold_and_print( scenario_box, point( 31, 5 ), 37, c_white, _( "Bionics:" ) );
+    std::vector<bionic_id> prof_bionics = you.prof->CBMs();
+    if( prof_bionics.empty() ) {
+        mvwprintz( scenario_box, point( 32, 6 ), c_light_red, _( "None!" ) );
+    } else {
+        point prof_pos( 32, 6 );
+        for( const bionic_id &prof : prof_bionics ) {
+            mvwprintz( scenario_box, prof_pos, c_light_gray, trim_by_length( prof->name.translated(), 36 ) );
+            prof_pos.y++;
+        }
+    }
+
+    wrefresh( scenario_box );
+}
+
+void new_character_windows::draw_borders()
+{
+    werase( background );
+
+    const auto draw_vert_line = [this]( const point &start, const int length ) {
+        for( int i = 0; i < length; i++ ) {
+            mvwputch( background, point( start.x, start.y + i ), c_light_gray, LINE_XOXO );
+        }
+    };
+
+    const auto draw_hor_line = [this]( const point &start, const int length ) {
+        for( int i = 0; i < length; i++ ) {
+            mvwputch( background, point( start.x + i, start.y ), c_light_gray, LINE_OXOX );
+        }
+    };
+
+    draw_border( background );
+    draw_hor_line( point( 1, 26 ), 61 );
+    draw_vert_line( point( 61, 1 ), 26 );
+    mvwputch( background, point( 61, 0 ), c_light_gray, LINE_OXXX );
+    mvwputch( background, point( 0, 26 ), c_light_gray, LINE_XXXO );
+    mvwputch( background, point( 61, 26 ), c_light_gray, LINE_XOXX );
+
+    draw_hor_line( point( 62, 6 ), 30 ); // why the heck is this not rendering
+    draw_vert_line( point( 92, 1 ), 12 );
+    mvwputch( background, point( 61, 0 ), c_light_gray, LINE_OXXX );
+    mvwputch( background, point( 61, 6 ), c_light_gray, LINE_XXXO );
+    mvwputch( background, point( 92, 0 ), c_light_gray, LINE_OXXX );
+    mvwputch( background, point( 92, 6 ), c_light_gray, LINE_XOXX );
+
+    draw_hor_line( point( 62, 12 ), 30 ); // this isn't rendering either
+    mvwputch( background, point( 61, 12 ), c_light_gray, LINE_XXXO );
+    mvwputch( background, point( 92, 12 ), c_light_gray, LINE_XOOX );
+
+    draw_vert_line( point( 61, 27 ), 31 );
+    draw_hor_line( point( 1, 58 ), 60 );
+    mvwputch( background, point( 61, 58 ), c_light_gray, LINE_XOOX );
+
+    draw_vert_line( point( 124, 1 ), 41 );
+    draw_hor_line( point( 93, 10 ), 30 );
+
+    wrefresh( background );
+}
+
+void new_character_windows::draw( const avatar &you, const points_left &points,
+                                  const cursor_position &cursor )
+{
+    draw_borders();
+    draw_scenario_box( you, cursor );
+    draw_traits_box( you, cursor );
+    draw_skills_box( you, cursor );
+    draw_biometrics_box( you, cursor );
+    draw_stats_box( you, points, cursor );
+    draw_gear_box( you );
+    draw_points_box( points, cursor );
+}
+
+void new_character_windows::edit_highlighted( avatar &you, points_left &points,
+        const cursor_position &cursor )
+{
+    // column
+    switch( cursor.get().x ) {
+        case 0: {
+            switch( cursor.get().y ) {
+                default:
+                    break;
+                case 0:
+                    set_scenario( you, points, tab_direction::NONE );
+                    break;
+                case 1:
+                    choose_location( you );
+                    break;
+                case 2:
+                    set_profession( you, points, tab_direction::NONE );
+                    break;
+                case 9:
+                    set_traits( you, points );
+                    break;
+            }
+            break;
+        }
+        case 1: {
+            switch( cursor.get().y ) {
+                default:
+                    break;
+                case 9:
+                    set_skills( you, points );
+            }
+        }
+    }
 }
 
 tab_direction set_points( avatar &, points_left &points )
@@ -1520,6 +2081,42 @@ static struct {
     }
 } profession_sorter;
 
+static std::string item_list_string( const std::list<item> &item_list )
+{
+    std::string buffer;
+    if( item_list.empty() ) {
+        buffer += pgettext( "set_profession_item", "None" ) + std::string( "\n" );
+    } else {
+        // TODO: If the item group is randomized *at all*, these will be different each time
+        // and it won't match what you actually start with
+        // TODO: Put like items together like the inventory does, so we don't have to scroll
+        // through a list of a dozen forks.
+        std::string buffer_wielded;
+        std::string buffer_worn;
+        std::string buffer_inventory;
+        for( const item &it : item_list ) {
+            if( it.has_flag( json_flag_no_auto_equip ) ) {
+                buffer_inventory += it.display_name() + "\n";
+            } else if( it.has_flag( json_flag_auto_wield ) ) {
+                buffer_wielded += it.display_name() + "\n";
+            } else if( it.is_armor() ) {
+                buffer_worn += it.display_name() + "\n";
+            } else {
+                buffer_inventory += it.display_name() + "\n";
+            }
+        }
+        buffer += colorize( _( "Wielded:" ), c_cyan ) + "\n";
+        buffer += !buffer_wielded.empty() ? buffer_wielded : pgettext( "set_profession_item_wielded",
+                  "None\n" );
+        buffer += colorize( _( "Worn:" ), c_cyan ) + "\n";
+        buffer += !buffer_worn.empty() ? buffer_worn : pgettext( "set_profession_item_worn", "None\n" );
+        buffer += colorize( _( "Inventory:" ), c_cyan ) + "\n";
+        buffer += !buffer_inventory.empty() ? buffer_inventory : pgettext( "set_profession_item_inventory",
+                  "None\n" );
+    }
+    return buffer;
+}
+
 /** Handle the profession tab of the character generation menu */
 tab_direction set_profession( avatar &u, points_left &points,
                               const tab_direction direction )
@@ -1690,38 +2287,8 @@ tab_direction set_profession( avatar &u, points_left &points,
             }
 
             // Profession items
-            const auto prof_items = sorted_profs[cur_id]->items( u.male, u.get_mutations() );
             buffer += colorize( _( "Profession items:" ), c_light_blue ) + "\n";
-            if( prof_items.empty() ) {
-                buffer += pgettext( "set_profession_item", "None" ) + std::string( "\n" );
-            } else {
-                // TODO: If the item group is randomized *at all*, these will be different each time
-                // and it won't match what you actually start with
-                // TODO: Put like items together like the inventory does, so we don't have to scroll
-                // through a list of a dozen forks.
-                std::string buffer_wielded;
-                std::string buffer_worn;
-                std::string buffer_inventory;
-                for( const auto &it : prof_items ) {
-                    if( it.has_flag( json_flag_no_auto_equip ) ) {
-                        buffer_inventory += it.display_name() + "\n";
-                    } else if( it.has_flag( json_flag_auto_wield ) ) {
-                        buffer_wielded += it.display_name() + "\n";
-                    } else if( it.is_armor() ) {
-                        buffer_worn += it.display_name() + "\n";
-                    } else {
-                        buffer_inventory += it.display_name() + "\n";
-                    }
-                }
-                buffer += colorize( _( "Wielded:" ), c_cyan ) + "\n";
-                buffer += !buffer_wielded.empty() ? buffer_wielded : pgettext( "set_profession_item_wielded",
-                          "None\n" );
-                buffer += colorize( _( "Worn:" ), c_cyan ) + "\n";
-                buffer += !buffer_worn.empty() ? buffer_worn : pgettext( "set_profession_item_worn", "None\n" );
-                buffer += colorize( _( "Inventory:" ), c_cyan ) + "\n";
-                buffer += !buffer_inventory.empty() ? buffer_inventory : pgettext( "set_profession_item_inventory",
-                          "None\n" );
-            }
+            buffer += item_list_string( sorted_profs[cur_id]->items( u.male, u.get_mutations() ) );
 
             // Profession bionics, active bionics shown first
             auto prof_CBMs = sorted_profs[cur_id]->CBMs();
