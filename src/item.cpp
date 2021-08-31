@@ -724,6 +724,22 @@ bool item::is_frozen_liquid() const
     return made_of( phase_id::SOLID ) && made_of_from_type( phase_id::LIQUID );
 }
 
+std::map<body_part_type::type, int> item::coverage_data() const
+{
+    const islot_armor *data = find_armor_data();
+    if( data == nullptr ) {
+        return std::map<body_part_type::type, int> {};
+    } else {
+        std::map<body_part_type::type, int> ret;
+        for( const armor_portion_data &amr : data->data ) {
+            for( const std::pair<body_part_type::type, int > &pair : amr.covers ) {
+                ret[pair.first] += pair.second;
+            }
+        }
+        return ret;
+    }
+}
+
 bool item::covers( const bodypart_id &bp ) const
 {
     bool does_cover = false;
@@ -731,38 +747,6 @@ bool item::covers( const bodypart_id &bp ) const
         does_cover = does_cover || bp == covered;
     } );
     return does_cover;
-}
-
-cata::optional<side> item::covers_overlaps( const item &rhs ) const
-{
-    if( get_layer() != rhs.get_layer() ) {
-        return cata::nullopt;
-    }
-    const islot_armor *armor = find_armor_data();
-    if( armor == nullptr ) {
-        return cata::nullopt;
-    }
-    const islot_armor *rhs_armor = rhs.find_armor_data();
-    if( rhs_armor == nullptr ) {
-        return cata::nullopt;
-    }
-    body_part_set this_covers;
-    for( const armor_portion_data &data : armor->data ) {
-        if( data.covers.has_value() ) {
-            this_covers.unify_set( *data.covers );
-        }
-    }
-    body_part_set rhs_covers;
-    for( const armor_portion_data &data : rhs_armor->data ) {
-        if( data.covers.has_value() ) {
-            rhs_covers.unify_set( *data.covers );
-        }
-    }
-    if( this_covers.intersect_set( rhs_covers ).any() ) {
-        return rhs.get_side();
-    } else {
-        return cata::nullopt;
-    }
 }
 
 body_part_set item::get_covered_body_parts() const
@@ -2883,7 +2867,7 @@ void item::armor_encumbrance_info( std::vector<iteminfo> &info, int reduce_encum
             std::map<bodypart_str_id, body_part_display_info, bodypart_str_id::LexCmp> to_display_data;
 
             for( const armor_portion_data &piece : t->data ) {
-                if( piece.covers.has_value() ) {
+                if( !piece.covers.has_value() ) {
                     for( const bodypart_str_id &covering_id : piece.covers.value() ) {
                         if( covering_id != bodypart_str_id::NULL_ID() ) {
                             to_display_data[covering_id] = { covering_id.obj().name_as_heading, {
@@ -4805,6 +4789,11 @@ void item::on_takeoff( Character &p )
     }
 }
 
+void item::on_takeoff( Character &p ) const
+{
+    p.on_item_takeoff( *this );
+}
+
 int item::on_wield_cost( const Character &you ) const
 {
     int mv = 0;
@@ -6256,7 +6245,7 @@ bool item::is_power_armor() const
     return t->power_armor;
 }
 
-int item::get_avg_encumber( const Character &p, encumber_flags flags ) const
+int item::get_avg_encumber() const
 {
     const islot_armor *t = find_armor_data();
     if( !t ) {
@@ -6268,14 +6257,9 @@ int item::get_avg_encumber( const Character &p, encumber_flags flags ) const
     int avg_ctr = 0;
 
     for( const armor_portion_data &entry : t->data ) {
-        if( entry.covers.has_value() ) {
-            for( const bodypart_str_id &limb : entry.covers.value() ) {
-                int encumber = get_encumber( p, bodypart_id( limb ), flags );
-                if( encumber ) {
-                    avg_encumber += encumber;
-                    ++avg_ctr;
-                }
-            }
+        for( const std::pair<body_part_type::type, int> &pair : entry.covers ) {
+            avg_encumber += entry.encumber * pair.second;
+            avg_ctr += pair.second;
         }
     }
     if( avg_encumber == 0 ) {
@@ -6375,14 +6359,9 @@ int item::get_avg_coverage() const
     int avg_coverage = 0;
     int avg_ctr = 0;
     for( const armor_portion_data &entry : t->data ) {
-        if( entry.covers.has_value() ) {
-            for( const bodypart_str_id &limb : entry.covers.value() ) {
-                int coverage = get_coverage( limb );
-                if( coverage ) {
-                    avg_coverage += coverage;
-                    ++avg_ctr;
-                }
-            }
+        for( const std::pair<body_part_type::type, int> &pair : entry.covers ) {
+            avg_coverage += entry.coverage * pair.second;
+            avg_ctr += pair.second;
         }
     }
     if( avg_coverage == 0 ) {
@@ -6391,28 +6370,6 @@ int item::get_avg_coverage() const
         avg_coverage /= avg_ctr;
         return avg_coverage;
     }
-}
-
-int item::get_coverage( const bodypart_id &bodypart ) const
-{
-    if( const armor_portion_data *portion_data = portion_for_bodypart( bodypart ) ) {
-        return portion_data->coverage;
-    }
-    return 0;
-}
-
-const armor_portion_data *item::portion_for_bodypart( const bodypart_id &bodypart ) const
-{
-    const islot_armor *t = find_armor_data();
-    if( !t ) {
-        return nullptr;
-    }
-    for( const armor_portion_data &entry : t->data ) {
-        if( entry.covers.has_value() && entry.covers->test( bodypart.id() ) ) {
-            return &entry;
-        }
-    }
-    return nullptr;
 }
 
 float item::get_thickness() const
@@ -11308,10 +11265,9 @@ int item::get_recursive_disassemble_moves( const Character &guy ) const
     return moves;
 }
 
-void item::remove_internal( const std::function<bool( item & )> &filter,
-                            int &count, std::list<item> &res )
+void item::remove_internal( const std::function<bool( item & )> &filter, int &count )
 {
-    contents.remove_internal( filter, count, res );
+    contents.remove_internal( filter, count );
 }
 
 std::list<const item *> item::all_items_top() const

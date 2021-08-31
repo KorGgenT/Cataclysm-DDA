@@ -228,8 +228,8 @@ struct armor_portion_data {
     // This determines how likely it is to hit the item instead of the player.
     int coverage = 0;
 
-    // Where does this cover if any
-    cata::optional<body_part_set> covers;
+    // Where does this cover if any. quantity of bodyparts of each type it covers.
+    std::map<body_part_type::type, int> covers;
 
     // What layer does it cover if any
     // TODO: Not currently supported, we still use flags for this

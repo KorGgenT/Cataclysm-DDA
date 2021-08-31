@@ -52,6 +52,7 @@
 #include "units_fwd.h"
 #include "visitable.h"
 #include "weighted_list.h"
+#include "worn_data.h"
 
 class Character;
 class JsonIn;
@@ -699,7 +700,7 @@ class Character : public Creature, public visitable
          * Check player capable of taking off an item.
          * @param it Thing to be taken off
          */
-        ret_val<bool> can_takeoff( const item &it, const std::list<item> *res = nullptr );
+        ret_val<bool> can_takeoff( const item &it, const std::list<item> *res = nullptr ) const;
 
         /** @return Odds for success (pair.first) and gunmod damage (pair.second) */
         std::pair<int, int> gunmod_installation_odds( const item &gun, const item &mod ) const;
@@ -718,10 +719,9 @@ class Character : public Creature, public visitable
         int get_lift_str() const;
         /** Takes off an item, returning false on fail. The taken off item is processed in the interact */
         bool takeoff( item_location loc, std::list<item> *res = nullptr );
-        bool takeoff( int pos );
 
         /** Returns list of rc items in player inventory. **/
-        std::list<item *> get_radio_items();
+        std::vector<const item &> get_radio_items();
         /** get best quality item that this character has */
         item *best_quality_item( const quality_id &qual );
         /** Handles health fluctuations over time */
@@ -1035,7 +1035,7 @@ class Character : public Creature, public visitable
          * Reduces and mutates du, prints messages about armor taking damage.
          * @return true if the armor was completely destroyed (and the item must be deleted).
          */
-        bool armor_absorb( damage_unit &du, item &armor, const bodypart_id &bp );
+        bool armor_absorb( damage_unit &du, worn_data &armor, const bodypart_id &bp );
         /**
          * Check for passive bionics that provide armor, and returns the armor bonus
          * This is called from player::passive_absorb_hit
@@ -1235,10 +1235,6 @@ class Character : public Creature, public visitable
         void mut_cbm_encumb( std::map<bodypart_id, encumbrance_data> &vals ) const;
 
         void apply_mut_encumbrance( std::map<bodypart_id, encumbrance_data> &vals ) const;
-
-        /** Return the position in the worn list where new_item would be
-         * put by default */
-        std::list<item>::iterator position_to_wear_new_item( const item &new_item );
 
         /** Applies encumbrance from items only
          * If new_item is not null, then calculate under the asumption that it
@@ -1446,22 +1442,16 @@ class Character : public Creature, public visitable
          */
         bool wield_contents( item &container, item *internal_item = nullptr, bool penalties = true,
                              int base_cost = INVENTORY_HANDLING_PENALTY );
-        /** Uses a tool */
-        void use( int inventory_position );
         /** Uses a tool at location */
         void use( item_location loc, int pre_obtain_moves = -1 );
         /** Uses the current wielded weapon */
         void use_wielded();
-        /** Wear item; returns false on fail. If interactive is false, don't alert the player or drain moves on completion. */
-        cata::optional<std::list<item>::iterator>
-        wear( int pos, bool interactive = true );
 
         /** Wear item; returns false on fail. If interactive is false, don't alert the player or drain moves on completion.
         * @param item_wear item_location of item to be worn.
         * @param interactive Alert player and drain moves if true.
         */
-        cata::optional<std::list<item>::iterator>
-        wear( item_location item_wear, bool interactive = true );
+        bool wear( item_location item_wear, bool interactive = true );
 
         /** Used for eating object at a location. Removes item if all of it was consumed.
         *   @returns trinary enum NONE, SOME or ALL amount consumed.
@@ -1585,12 +1575,7 @@ class Character : public Creature, public visitable
 
         // checks to see if an item is worn
         bool is_worn( const item &thing ) const {
-            for( const auto &elem : worn ) {
-                if( &thing == &elem ) {
-                    return true;
-                }
-            }
-            return false;
+            return worn.is_worn( thing );
         }
 
         /**
@@ -1665,12 +1650,11 @@ class Character : public Creature, public visitable
         /** Calculate (but do not deduct) the number of moves required to wear an item */
         int item_wear_cost( const item &it ) const;
 
-        /** Wear item; returns nullopt on fail, or pointer to newly worn item on success.
+        /** Wear item; returns false on fail, or true on success.
          * If interactive is false, don't alert the player or drain moves on completion.
          * If do_calc_encumbrance is false, don't recalculate encumbrance, caller must call it eventually.
          */
-        cata::optional<std::list<item>::iterator>
-        wear_item( const item &to_wear, bool interactive = true, bool do_calc_encumbrance = true );
+        bool wear_item( const item &to_wear, bool interactive = true, bool do_calc_encumbrance = true );
 
         /** Returns the amount of item `type' that is currently worn */
         int  amount_worn( const itype_id &id ) const;
@@ -1687,7 +1671,7 @@ class Character : public Creature, public visitable
          * content (@ref item::contents is not checked).
          * If the filter function returns true, the item is removed.
          */
-        std::list<item> remove_worn_items_with( const std::function<bool( item & )> &filter );
+        void remove_worn_items_with( const std::function<bool( const item & )> &filter );
 
         // returns a list of all item_location the character has, including items contained in other items.
         // only for CONTAINER pocket type; does not look for magazines
@@ -1699,9 +1683,6 @@ class Character : public Creature, public visitable
          * Only use the invlet in the user interface, otherwise always use the item position. */
         item *invlet_to_item( int invlet );
 
-        // Returns the item with a given inventory position.
-        item &i_at( int position );
-        const item &i_at( int position ) const;
         /**
          * Returns the item position (suitable for @ref i_at or similar) of a
          * specific item. Returns INT_MIN if the item is not found.
@@ -1963,8 +1944,6 @@ class Character : public Creature, public visitable
         void invalidate_inventory_validity_cache();
 
         void invalidate_weight_carried_cache();
-        /** Returns all items that must be taken off before taking off this item */
-        std::list<item *> get_dependent_worn_items( const item &it );
         /** Drops an item to the specified location */
         void drop( item_location loc, const tripoint &where );
         virtual void drop( const drop_locations &what, const tripoint &target, bool stash = false );
@@ -2249,7 +2228,6 @@ class Character : public Creature, public visitable
 
         bool is_dead = false;
 
-        std::list<item> worn;
         bool nv_cached = false;
         // Means player sit inside vehicle on the tile he is now
         bool in_vehicle = false;
@@ -2764,24 +2742,12 @@ class Character : public Creature, public visitable
         nutrients compute_effective_nutrients( const item & ) const;
         /** Returns true if the character is wearing something on the entered body part */
         bool wearing_something_on( const bodypart_id &bp ) const;
-        /** Returns true if the character is wearing something occupying the helmet slot */
-        bool is_wearing_helmet() const;
-        /** Returns the total encumbrance of all SKINTIGHT and HELMET_COMPAT items covering
-         *  the head */
-        int head_cloth_encumbrance() const;
         /** Same as footwear factor, but for arms */
         double armwear_factor() const;
-        /** Returns 1 if the player is wearing an item of that count on one foot, 2 if on both,
-         *  and zero if on neither */
-        int shoe_type_count( const itype_id &it ) const;
-        /** Returns 1 if the player is wearing footwear on both feet, .5 if on one,
-         *  and 0 if on neither */
+        /** Returns the ratio of feet wearing a shoe (between 0 and 1) */
         double footwear_factor() const;
         /** Returns true if the player is wearing something on their feet that is not SKINTIGHT */
-        bool is_wearing_shoes( const side &check_side = side::BOTH ) const;
-
-        /** Returns true if the worn item is visible (based on layering and coverage) */
-        bool is_worn_item_visible( std::list<item>::const_iterator ) const;
+        bool is_wearing_shoes() const;
 
         /** Returns all worn items visible to an outside observer */
         std::list<item> get_visible_worn_items() const;
@@ -3315,6 +3281,7 @@ class Character : public Creature, public visitable
 
         int radiation;
 
+        worn_data_container worn;
         std::vector<tripoint> auto_move_route;
         // Used to make sure auto move is canceled if we stumble off course
         cata::optional<tripoint> next_expected_position;

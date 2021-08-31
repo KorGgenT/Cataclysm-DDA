@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "bodypart.h"
 #include "calendar.h"
 #include "cata_utility.h"
 #include "compatibility.h"
@@ -1413,6 +1414,7 @@ class item : public visitable
          * vector but will be removed immediately after the function returns
          */
         void on_takeoff( Character &p );
+        void on_takeoff( Character &p ) const;
 
         /**
          * Calculate (but do not deduct) the number of moves required to wield this weapon
@@ -1635,11 +1637,13 @@ class item : public visitable
          */
         /*@{*/
         /**
+         * coverage data from armor data
+         */
+        std::map<body_part_type::type, int> coverage_data() const;
+        /**
          * Whether this item (when worn) covers the given body part.
          */
         bool covers( const bodypart_id &bp ) const;
-        // do both items overlap a bodypart at all? returns the side that conflicts via rhs
-        cata::optional<side> covers_overlaps( const item &rhs ) const;
         /**
          * Bitset of all covered body parts.
          *
@@ -1699,25 +1703,17 @@ class item : public visitable
          * Returns the average coverage of each piece of data this item
          */
         int get_avg_coverage() const;
-        /**
-         * Returns the highest coverage that any piece of data that this item has that covers the bodypart.
-         * Values range from 0 (not covering anything) to 100 (covering the whole body part).
-         * Items that cover more are more likely to absorb damage from attacks.
-         */
-        int get_coverage( const bodypart_id &bodypart ) const;
 
         enum class encumber_flags : int {
             none = 0,
             assume_full = 1,
         };
 
-        const armor_portion_data *portion_for_bodypart( const bodypart_id &bodypart ) const;
-
         /**
          * Returns the average encumbrance value that this item across all portions
          * Returns 0 if this is can not be worn at all.
          */
-        int get_avg_encumber( const Character &, encumber_flags = encumber_flags::none ) const;
+        int get_avg_encumber() const;
 
         /**
          * Returns the encumbrance value that this item has when worn by given

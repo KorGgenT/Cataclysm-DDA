@@ -245,7 +245,7 @@
     ],
     "power_armor": true,
     "material_thickness": 10,
-    "flags": [ "WATERPROOF", "STURDY", "BELTED" ],
+    "flags": [ "WATERPROOF", "STURDY", "BELTED", "POWERARMOR_COMPONENT" ],
     "armor": [ { "encumbrance": 40, "coverage": 100 } ]
   },
   {

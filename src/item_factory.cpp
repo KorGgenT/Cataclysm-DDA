@@ -1244,24 +1244,6 @@ void Item_factory::check_definitions() const
             msg += "undefined category " + type->category_force.str() + "\n";
         }
 
-        if( type->armor ) {
-            cata::flat_set<bodypart_str_id> observed_bps;
-            for( const armor_portion_data &portion : type->armor->data ) {
-                if( portion.covers.has_value() ) {
-                    for( const bodypart_str_id &bp : *portion.covers ) {
-                        if( portion.covers->test( bp ) ) {
-                            if( observed_bps.count( bp ) ) {
-                                msg += string_format(
-                                           "multiple portions with same body_part %s defined\n",
-                                           bp.str() );
-                            }
-                            observed_bps.insert( bp );
-                        }
-                    }
-                }
-            }
-        }
-
         if( type->weight < 0_gram ) {
             msg += "negative weight\n";
         }
@@ -1984,7 +1966,16 @@ void armor_portion_data::deserialize( JsonIn &jsin )
 {
     const JsonObject &jo = jsin.get_object();
 
-    assign_coverage_from_json( jo, "covers", covers );
+    if( jo.has_array( "covers" ) ) {
+        body_part_set cover_set;
+        assign_coverage_from_json( jo, "covers", cover_set );
+        for( const bodypart_str_id &part : cover_set ) {
+            covers[part->limb_type]++;
+        }
+        jo.throw_error( "Warning.  Item uses old-style armor_portion_data loading." );
+    } else {
+        optional( jo, false, "covers", covers );
+    }
     optional( jo, false, "coverage", coverage, 0 );
 
     if( jo.has_array( "encumbrance" ) ) {
