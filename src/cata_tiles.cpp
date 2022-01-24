@@ -3355,6 +3355,12 @@ bool cata_tiles::draw_critter_at_below( const tripoint &p, const lit_level, int 
     return true;
 }
 
+bool monster_sleep_mode::draw_asleep( const tripoint &position, int height_3d ) const
+{
+    return draw_from_id_string( render_id, render_as, render_subcat, p, 
+    corner, 0, lit_level::LIT, false, height_3d );
+}
+
 bool cata_tiles::draw_critter_at( const tripoint &p, lit_level ll, int &height_3d,
                                   const bool ( &invisible )[5] )
 {
@@ -3364,8 +3370,11 @@ bool cata_tiles::draw_critter_at( const tripoint &p, lit_level ll, int &height_3
     Creature::Attitude attitude;
     Character &you = get_player_character();
     creature_tracker &creatures = get_creature_tracker();
+    monster *critter = creatures.creature_at( p );
     const auto override = monster_override.find( p );
-    if( override != monster_override.end() ) {
+    if( critter && critter->is_asleep() ) {
+        result = critter->draw_asleep( height_3d );
+    } else if( override != monster_override.end() ) {
         const mtype_id id = std::get<0>( override->second );
         if( !id ) {
             return false;

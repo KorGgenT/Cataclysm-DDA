@@ -279,3 +279,20 @@ const behavior::node_t *mtype::get_goals() const
 {
     return &goals;
 }
+
+void monster_sleep_mode::wake()
+{
+    asleep = false;
+}
+
+bool monster_sleep_mode::is_asleep() {
+    return asleep;
+}
+
+bool monster_sleep_mode::try_wake( int closest_hostile_dist )
+{
+    if( closest_hostile_dist <= wake_distance ) {
+        wake();
+    }
+    return is_asleep();
+}

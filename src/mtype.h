@@ -241,6 +241,26 @@ struct monster_death_effect {
     void deserialize( const JsonObject &data );
 };
 
+class monster_sleep_mode {
+    public:
+        monster_sleep_mode() = default;
+        // compare wake distance (and in the future other parameters)
+        // to determine if the monster should wake, then wake it.
+        bool try_wake( int closest_hostile_dist );
+        void wake();
+        bool is_asleep() const;
+        // cata tiles
+        bool draw_asleep() const;
+    private:
+        bool asleep = true;
+        // tile category from cata tiles for rendering puurposes
+        TILE_CATEGORY render_as;
+        std::string render_id;
+        std::string render_subcat;
+        // the distance from the closest hostile before this monster wakes up
+        int wake_distance;
+};
+
 struct mtype {
     private:
         friend class MonsterGenerator;
