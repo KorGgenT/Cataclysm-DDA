@@ -1,0 +1,15 @@
+[
+    {
+        "type": "wound",
+        "id": "debug_wound",
+        "name": "debug owie",
+        "description": "ouch! it hurts!",
+        "pain": 10,
+        "bleed": "5 ml",
+        "heal_time": "1 hour",
+        "limbs": [ "head" ],
+        "min_damage": 1,
+        "heals_into": "debug_scar",
+        "infects_into": "debug_wound"
+    }
+]
