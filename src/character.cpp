@@ -1811,20 +1811,7 @@ float Character::stability_roll() const
 
 bool Character::is_dead_state() const
 {
-    // we want to warn the player with a debug message if they are invincible. this should be unimportant once wounds exist and bleeding is how you die.
-    bool has_vitals = false;
-    for( const bodypart_id &part : get_all_body_parts( get_body_part_flags::only_main ) ) {
-        if( part->is_vital ) {
-            if( get_part_hp_cur( part ) <= 0 ) {
-                return true;
-            }
-            has_vitals = true;
-        }
-    }
-    if( !has_vitals ) {
-        debugmsg( _( "WARNING!  Player has no vital part and is invincible." ) );
-    }
-    return false;
+    return get_bloodvol_index() < 0.5f;
 }
 
 void Character::on_try_dodge()
