@@ -72,6 +72,7 @@ class cata_path;
 class creature_tracker;
 class current_map;
 class eoc_events;
+class CSteamAchievements;
 class event_bus;
 class faction_manager;
 class field_entry;
@@ -176,6 +177,7 @@ class game
         friend class swap_map;
         friend achievements_tracker &get_achievements();
         friend event_bus &get_event_bus();
+        friend CSteamAchievements &get_steam_achievements();
         friend map &get_map();
         friend map &reality_bubble();
         friend creature_tracker &get_creature_tracker();
@@ -1115,6 +1117,7 @@ class game
         bool save_achievements();
         // ########################## DATA ################################
         // May be a bit hacky, but it's probably better than the header spaghetti
+        pimpl<CSteamAchievements> achievements_steam_ptr; // NOLINT(cata-serialize)
         pimpl<map> map_ptr; // NOLINT(cata-serialize)
         pimpl<::current_map> current_map_ptr; // NOLINT(cata-serialize)
         pimpl<avatar> u_ptr; // NOLINT(cata-serialize)
@@ -1133,6 +1136,7 @@ class game
         map &m; // NOLINT(cata-serialize)
         // 'current_map' will be identical to 'm' as you can save only at the top of the main loop.
         ::current_map &current_map; // NOLINT(cata-serialize)
+        CSteamAchievements &achievements_steam;
         avatar &u;
         scent_map &scent;
         // scenario is saved in avatar::store

@@ -30,6 +30,7 @@
 
 #include <flatbuffers/util.h>
 
+#include "achievement_steam.h"
 #include "cached_options.h"
 #include "cata_path.h"
 #include "color.h"
@@ -732,6 +733,16 @@ int main( int argc, const char *argv[] )
     }
 #endif
 
+    if( SteamAPI_RestartAppIfNecessary( APP_ID ) ) {
+        return 0;
+    }
+
+    if( !SteamAPI_Init() ) {
+        DebugLog( D_INFO, DC_ALL ) << "Error: Steam API was not initialized.";
+    } else {
+        SteamInput()->Init( false );
+    }
+
     DebugLog( D_INFO, DC_ALL ) << "[main] C locale set to " << setlocale( LC_ALL, nullptr );
     DebugLog( D_INFO, DC_ALL ) << "[main] C++ locale set to " << std::locale().name();
 
@@ -863,6 +874,9 @@ int main( int argc, const char *argv[] )
         get_event_bus().send<event_type::game_begin>( getVersionString() );
         while( !do_turn() ) {}
     }
+
+    // Shutdown the SteamAPI
+    SteamAPI_Shutdown();
 
     exit_handler( -999 );
     return 0;

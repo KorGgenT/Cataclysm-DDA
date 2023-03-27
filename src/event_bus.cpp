@@ -17,6 +17,8 @@
 #include "talker.h"  // IWYU pragma: keep
 #include "vehicle.h"
 
+#include "achievement_steam.h"
+
 namespace cata::event_detail
 {
 template <event_type Type> struct event_spec;
