@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "event_subscriber.h"
 #include "talker.h"
+#include "achievement_steam.h"
 
 event_subscriber::~event_subscriber()
 {

@@ -78,6 +78,7 @@ enum action_id : int;
 
 class achievements_tracker;
 class avatar;
+class CSteamAchievements;
 class event_bus;
 class faction_manager;
 class kill_tracker;
@@ -149,6 +150,7 @@ class game
         friend class exosuit_interact;
         friend achievements_tracker &get_achievements();
         friend event_bus &get_event_bus();
+        friend CSteamAchievements &get_steam_achievements();
         friend map &get_map();
         friend creature_tracker &get_creature_tracker();
         friend Character &get_player_character();
@@ -1057,6 +1059,7 @@ class game
         bool save_player_data();
         // ########################## DATA ################################
         // May be a bit hacky, but it's probably better than the header spaghetti
+        pimpl<CSteamAchievements> achievements_steam_ptr; // NOLINT(cata-serialize)
         pimpl<map> map_ptr; // NOLINT(cata-serialize)
         pimpl<avatar> u_ptr; // NOLINT(cata-serialize)
         pimpl<live_view> liveview_ptr; // NOLINT(cata-serialize)
@@ -1071,6 +1074,7 @@ class game
         pimpl<spell_events> spell_events_ptr; // NOLINT(cata-serialize)
         pimpl<eoc_events> eoc_events_ptr; // NOLINT(cata-serialize)
 
+        CSteamAchievements &achievements_steam;
         map &m;
         avatar &u;
         scent_map &scent;
