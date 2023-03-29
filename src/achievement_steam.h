@@ -4,7 +4,15 @@
 
 #define APP_ID 2330750
 
-#include "steam/steam_api.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wsuggest-override"
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
+#include <steam/steam_api.h>
+#pragma GCC diagnostic pop
 
 #include "debug.h"
 #include "event.h"
