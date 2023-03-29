@@ -6,6 +6,18 @@
 #include "game.h"
 #include "kill_tracker.h"
 
+// Stubs for non-Windows builds
+#if !defined(_WIN32)
+#define ARRAYSIZE(a) \
+    ((sizeof(a) / sizeof(*(a))) / \
+     static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
+
+static void OutputDebugString( const std::string &msg )
+{
+    DebugLog( D_INFO, D_GAME ) << msg;
+}
+#endif
+
 Achievement_t g_rgAchievements[] = {
     _ACH_ID( a_kill_10_monsters, "Decamate" ),
     _ACH_ID( a_kill_100_monsters, "Centinel" ),
@@ -98,7 +110,7 @@ void CSteamAchievements::OnUserStatsReceived( UserStatsReceived_t *pCallback )
             m_bStatsValid = true;
 
             // load achievements
-            for( int iAch = 0; iAch < ARRAYSIZE( g_rgAchievements ); ++iAch ) {
+            for( size_t iAch = 0; iAch < ARRAYSIZE( g_rgAchievements ); ++iAch ) {
                 Achievement_t &ach = g_rgAchievements[iAch];
                 m_pSteamUserStats->GetAchievement( ach.m_pchAchievementID, &ach.m_bAchieved );
                 //sprintf_safe( ach.m_rgchName, "%s",
@@ -177,33 +189,45 @@ void CSteamAchievements::EvaluateAchievement( Achievement_t &achieve )
     }
 
     const int mon_kills = g->get_kill_tracker().monster_kill_count();
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+#endif
     switch( achieve.m_eAchievementID ) {
         case a_kill_10_monsters: {
             if( mon_kills >= 10 ) {
                 UnlockAchievement( achieve );
             }
+            break;
         }
         case a_kill_100_monsters: {
             if( mon_kills >= 100 ) {
                 UnlockAchievement( achieve );
             }
+            break;
         }
         case a_kill_1000_monsters: {
             if( mon_kills >= 1000 ) {
                 UnlockAchievement( achieve );
             }
+            break;
         }
         case a_kill_10000_monsters: {
             if( mon_kills >= 10000 ) {
                 UnlockAchievement( achieve );
             }
+            break;
         }
         case a_kill_100000_monsters: {
             if( mon_kills > 100000 ) {
                 UnlockAchievement( achieve );
             }
+            break;
         }
     }
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 }
 
 //-----------------------------------------------------------------------------
