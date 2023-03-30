@@ -43,7 +43,10 @@ enum EAchievements {
     a_install_1_cbm,
     a_install_10_cbms,
     a_reach_max_z_level,
-    a_traverse_sharp_terrain
+    a_traverse_sharp_terrain,
+    a_die_1_time,
+    a_die_9_times,
+    a_die_99_times
 };
 
 #define _ACH_ID( id, name ) { id, #id, name, "", 0, 0 }
@@ -94,6 +97,8 @@ class CSteamAchievements : public event_subscriber
         void EvaluateAchievement( Achievement_t &achieve );
         void UnlockAchievement( Achievement_t &achieve );
         void UnlockAchievement( const achievement_id &achieve );
+
+        int deaths = 0;
 };
 
 CSteamAchievements &get_steam_achievements();

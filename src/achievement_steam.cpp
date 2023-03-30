@@ -42,7 +42,10 @@ Achievement_t g_rgAchievements[] = {
     _ACH_ID( a_survive_91_days, "A time to every purpose under heaven" ),
     _ACH_ID( a_survive_365_days, "Brighter days ahead?" ),
     _ACH_ID( a_traverse_sharp_terrain, "Every rose has its thorn" ),
-    _ACH_ID( a_walk_1000_miles, "Please don't fall down at my door" )
+    _ACH_ID( a_walk_1000_miles, "Please don't fall down at my door" ),
+    _ACH_ID( a_die_1_time, "Die" ),
+    _ACH_ID( a_die_9_times, "Curiosity" ),
+    _ACH_ID( a_die_99_times, "Ouroboros" )
 };
 
 // leave out achievements that use stats!
@@ -90,6 +93,9 @@ CSteamAchievements::CSteamAchievements( Achievement_t *Achievements, int NumAchi
 {
     m_pSteamUser = SteamUser();
     m_pSteamUserStats = SteamUserStats();
+    if( m_pSteamUserStats ) {
+        m_pSteamUserStats->GetStat( "deaths", &deaths );
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -224,6 +230,21 @@ void CSteamAchievements::EvaluateAchievement( Achievement_t &achieve )
             }
             break;
         }
+        case a_die_1_time: {
+            if( deaths > 0 ) {
+                UnlockAchievement( achieve );
+            }
+        }
+        case a_die_9_times: {
+            if( deaths > 8 ) {
+                UnlockAchievement( achieve );
+            }
+        }
+        case a_die_99_times: {
+            if( deaths > 98 ) {
+                UnlockAchievement( achieve );
+            }
+        }
     }
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
@@ -265,6 +286,10 @@ void CSteamAchievements::notify( const cata::event &e )
     switch( e.type() ) {
         case event_type::character_kills_monster: {
             m_pSteamUserStats->SetStat( "mon_kills", g->get_kill_tracker().monster_kill_count() );
+            break;
+        }
+        case event_type::avatar_dies: {
+            m_pSteamUserStats->SetStat( "deaths", ++deaths );
             break;
         }
         case event_type::player_gets_achievement: {
