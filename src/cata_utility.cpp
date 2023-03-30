@@ -343,7 +343,7 @@ void write_to_file( const cata_path &path, const std::function<void( std::ostrea
     ofstream_wrapper fout( path.get_unrelative_path(), std::ios::binary );
     writer( fout.stream() );
     fout.close();
-    gz_compress_file( path.get_relative_path() );
+    gz_compress_file( path.get_relative_path().string() );
 }
 
 bool write_to_file( const cata_path &path, const std::function<void( std::ostream & )> &writer,
