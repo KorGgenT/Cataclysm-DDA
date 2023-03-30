@@ -1691,7 +1691,7 @@ void options_manager::add_options_general()
 
         add( "SOUNDPACKS", page_id, to_translation( "Choose soundpack" ),
              to_translation( "Choose the soundpack you want to use.  Requires restart." ),
-             build_soundpacks_list(), "basic", COPT_NO_SOUND_HIDE
+             build_soundpacks_list(), "CC-Sounds", COPT_NO_SOUND_HIDE
            ); // populate the options dynamically
 
         get_option( "SOUNDPACKS" ).setPrerequisite( "SOUND_ENABLED" );
