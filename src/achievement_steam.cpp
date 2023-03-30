@@ -200,7 +200,7 @@ void CSteamAchievements::OnUserStatsStored( UserStatsStored_t *pCallback )
 void CSteamAchievements::EvaluateAchievement( Achievement_t &achieve )
 {
     // Already have it?
-    if( achieve.m_bAchieved ) {
+    if( achieve.m_bAchieved || !enabled ) {
         return;
     }
 
@@ -266,6 +266,10 @@ void CSteamAchievements::EvaluateAchievement( Achievement_t &achieve )
 //-----------------------------------------------------------------------------
 void CSteamAchievements::UnlockAchievement( Achievement_t &achieve )
 {
+    if( !enabled ) {
+        return;
+    }
+
     achieve.m_bAchieved = true;
 
     // the icon may change once it's unlocked
@@ -277,6 +281,9 @@ void CSteamAchievements::UnlockAchievement( Achievement_t &achieve )
 
 void CSteamAchievements::UnlockAchievement( const achievement_id &achieve )
 {
+    if( !enabled ) {
+        return;
+    }
     auto found = achievement_map.find( achieve.str() );
     if( found != achievement_map.end() ) {
         for( Achievement_t &ach : g_rgAchievements ) {
@@ -289,11 +296,15 @@ void CSteamAchievements::UnlockAchievement( const achievement_id &achieve )
 
 void CSteamAchievements::notify( const cata::event &e )
 {
-    if( !m_pSteamUserStats || !m_pSteamUser ) {
+    if( !m_pSteamUserStats || !m_pSteamUser || !enabled ) {
         // no steam achievements.
         return;
     }
     switch( e.type() ) {
+        case event_type::uses_debug_menu: {
+            enabled = false;
+            break;
+        }
         case event_type::character_kills_monster: {
             m_pSteamUserStats->SetStat( "mon_kills", g->get_kill_tracker().monster_kill_count() );
             break;
