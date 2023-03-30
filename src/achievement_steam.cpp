@@ -244,16 +244,19 @@ void CSteamAchievements::EvaluateAchievement( Achievement_t &achieve )
             if( deaths > 0 ) {
                 UnlockAchievement( achieve );
             }
+            break;
         }
         case a_die_9_times: {
             if( deaths > 8 ) {
                 UnlockAchievement( achieve );
             }
+            break;
         }
         case a_die_99_times: {
             if( deaths > 98 ) {
                 UnlockAchievement( achieve );
             }
+            break;
         }
     }
 #if defined(__GNUC__) && !defined(__clang__)

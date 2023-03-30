@@ -285,12 +285,34 @@ float multi_lerp( const std::vector<std::pair<float, float>> &points, float x )
     return ( t * points[i].second ) + ( ( 1 - t ) * points[i - 1].second );
 }
 
+static void gz_compress_file( const std::string &path )
+{
+    FILE *f = ::fopen( path.c_str(), "rb" );
+    if( !f ) {
+        return;
+    }
+    ::fseek( f, 0, SEEK_END );
+    size_t len = ::ftell( f );
+    ::fseek( f, 0, SEEK_SET );
+    char *buf = static_cast<char *>( ::malloc( len * sizeof( *buf ) ) );
+    len = ::fread( buf, sizeof( *buf ), len, f ) * sizeof( *buf );
+    ::fclose( f );
+
+    gzFile zf = ::gzopen( path.c_str(), "wb" );
+    if( !zf ) {
+        return;
+    }
+    ::gzfwrite( buf, sizeof( *buf ), len, zf );
+    ::gzclose( zf );
+}
+
 void write_to_file( const std::string &path, const std::function<void( std::ostream & )> &writer )
 {
     // Any of the below may throw. ofstream_wrapper will clean up the temporary path on its own.
     ofstream_wrapper fout( std::filesystem::u8path( path ), std::ios::binary );
     writer( fout.stream() );
     fout.close();
+    gz_compress_file( path );
 }
 
 bool write_to_file( const std::string &path, const std::function<void( std::ostream & )> &writer,
@@ -321,6 +343,7 @@ void write_to_file( const cata_path &path, const std::function<void( std::ostrea
     ofstream_wrapper fout( path.get_unrelative_path(), std::ios::binary );
     writer( fout.stream() );
     fout.close();
+    gz_compress_file( path.get_relative_path() );
 }
 
 bool write_to_file( const cata_path &path, const std::function<void( std::ostream & )> &writer,
