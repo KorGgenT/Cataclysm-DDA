@@ -1048,7 +1048,7 @@ void sfx::play_ambient_variant_sound( const std::string &id, const std::string &
 void load_soundset()
 {
     const cata_path default_path = PATH_INFO::defaultsounddir();
-    const std::string default_soundpack = "basic";
+    const std::string default_soundpack = "CC-Sounds";
     std::string current_soundpack = get_option<std::string>( "SOUNDPACKS" );
     cata_path soundpack_path;
 
