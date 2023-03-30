@@ -45,7 +45,12 @@ Achievement_t g_rgAchievements[] = {
     _ACH_ID( a_walk_1000_miles, "Please don't fall down at my door" ),
     _ACH_ID( a_die_1_time, "Die" ),
     _ACH_ID( a_die_9_times, "Curiosity" ),
-    _ACH_ID( a_die_99_times, "Ouroboros" )
+    _ACH_ID( a_die_99_times, "Ouroboros" ),
+    _ACH_ID( a_kill_nether, "Silence your nightmares" ),
+    _ACH_ID( a_kill_cyborg, "Resistance is not futile" ),
+    _ACH_ID( a_swim_merit_badge, "Swimming merit badge" ),
+    _ACH_ID( a_reach_min_z_level, "Ain't no valley low enough" ),
+    _ACH_ID( a_wield_crowbar, "Freeman's favorite" )
 };
 
 // leave out achievements that use stats!
@@ -68,7 +73,12 @@ std::map<std::string, EAchievements> achievement_map = {
     { "achievement_survive_91_days", EAchievements::a_survive_91_days },
     { "achievement_survive_365_days", EAchievements::a_survive_365_days },
     { "achievement_traverse_sharp_terrain", EAchievements::a_traverse_sharp_terrain },
-    { "achievement_walk_1000_miles", EAchievements::a_walk_1000_miles }
+    { "achievement_walk_1000_miles", EAchievements::a_walk_1000_miles },
+    { "achievement_kill_nether", EAchievements::a_kill_nether },
+    { "achievement_kill_cyborg", EAchievements::a_kill_cyborg },
+    { "achievement_swim_merit_badge", EAchievements::a_swim_merit_badge },
+    { "achievement_reach_min_z_level", EAchievements::a_reach_min_z_level },
+    { "achievement_wield_crowbar", EAchievements::a_wield_crowbar }
 };
 
 CSteamAchievements::CSteamAchievements() :

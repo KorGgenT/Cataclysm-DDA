@@ -46,7 +46,12 @@ enum EAchievements {
     a_traverse_sharp_terrain,
     a_die_1_time,
     a_die_9_times,
-    a_die_99_times
+    a_die_99_times,
+    a_kill_nether,
+    a_kill_cyborg,
+    a_swim_merit_badge,
+    a_reach_min_z_level,
+    a_wield_crowbar
 };
 
 #define _ACH_ID( id, name ) { id, #id, name, "", 0, 0 }
