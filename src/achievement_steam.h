@@ -104,6 +104,8 @@ class CSteamAchievements : public event_subscriber
         void UnlockAchievement( const achievement_id &achieve );
 
         int deaths = 0;
+
+        bool enabled = true;
 };
 
 CSteamAchievements &get_steam_achievements();
