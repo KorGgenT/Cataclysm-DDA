@@ -40,6 +40,7 @@ enum EAchievements {
     a_crosses_mutation_threshold,
     a_cut_1_tree,
     a_cut_100_trees,
+    a_cut_1000_trees,
     a_install_1_cbm,
     a_install_10_cbms,
     a_reach_max_z_level,
@@ -51,7 +52,13 @@ enum EAchievements {
     a_kill_cyborg,
     a_swim_merit_badge,
     a_reach_min_z_level,
-    a_wield_crowbar
+    a_wield_crowbar,
+    a_break_major_limbs,
+    a_bury_1_corpse,
+    a_bury_10_corpses,
+    a_bury_100_corpses,
+    a_reach_lab_finale,
+    a_reach_refugee_center
 };
 
 #define _ACH_ID( id, name ) { id, #id, name, "", 0, 0 }

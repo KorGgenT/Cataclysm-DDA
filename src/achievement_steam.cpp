@@ -28,6 +28,7 @@ Achievement_t g_rgAchievements[] = {
     _ACH_ID( a_crosses_mutation_threshold, "Homo Evolutis" ),
     _ACH_ID( a_cut_1_tree, "Timber" ),
     _ACH_ID( a_cut_100_trees, "Lumberjack" ),
+    _ACH_ID( a_cut_1000_trees, "Deforestation" ),
     _ACH_ID( a_install_1_cbm, "Cyberpunk" ),
     _ACH_ID( a_install_10_cbms, "Clockwork Man" ),
     _ACH_ID( a_kill_fungus, "Fungicide" ),
@@ -50,7 +51,13 @@ Achievement_t g_rgAchievements[] = {
     _ACH_ID( a_kill_cyborg, "Resistance is not futile" ),
     _ACH_ID( a_swim_merit_badge, "Swimming merit badge" ),
     _ACH_ID( a_reach_min_z_level, "Ain't no valley low enough" ),
-    _ACH_ID( a_wield_crowbar, "Freeman's favorite" )
+    _ACH_ID( a_wield_crowbar, "Freeman's favorite" ),
+    _ACH_ID( a_break_major_limbs, "Broken But Not Defeated" ),
+    _ACH_ID( a_bury_1_corpse, "Funeral" ),
+    _ACH_ID( a_bury_10_corpses, "Undertaker" ),
+    _ACH_ID( a_bury_100_corpses, "Funeral House" ),
+    _ACH_ID( a_reach_lab_finale, "What are they hiding?" ),
+    _ACH_ID( a_reach_refugee_center, "The Last Homely House" )
 };
 
 // leave out achievements that use stats!
@@ -59,6 +66,7 @@ std::map<std::string, EAchievements> achievement_map = {
     { "achievement_crosses_mutation_threshold", EAchievements::a_crosses_mutation_threshold },
     { "achievement_cut_1_tree", EAchievements::a_cut_1_tree },
     { "achievement_cut_100_trees", EAchievements::a_cut_100_trees },
+    { "achievement_cut_1000_trees", EAchievements::a_cut_1000_trees },
     { "achievement_install_1_cbm", EAchievements::a_install_1_cbm },
     { "achievement_install_10_cbms", EAchievements::a_install_10_cbms },
     { "achievement_kill_fungus", EAchievements::a_kill_fungus },
@@ -78,7 +86,13 @@ std::map<std::string, EAchievements> achievement_map = {
     { "achievement_kill_cyborg", EAchievements::a_kill_cyborg },
     { "achievement_swim_merit_badge", EAchievements::a_swim_merit_badge },
     { "achievement_reach_min_z_level", EAchievements::a_reach_min_z_level },
-    { "achievement_wield_crowbar", EAchievements::a_wield_crowbar }
+    { "achievement_wield_crowbar", EAchievements::a_wield_crowbar },
+    { "achievement_break_major_limbs", EAchievements::a_break_major_limbs },
+    { "achievement_bury_1_corpse", EAchievements::a_bury_1_corpse },
+    { "achievement_bury_10_corpse", EAchievements::a_bury_10_corpses },
+    { "achievement_bury_100_corpse", EAchievements::a_bury_100_corpses },
+    { "achievement_reach_lab_finale", EAchievements::a_reach_lab_finale },
+    { "achievement_reach_refugee_center", EAchievements::a_reach_refugee_center }
 };
 
 CSteamAchievements::CSteamAchievements() :
