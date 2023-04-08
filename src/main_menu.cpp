@@ -51,6 +51,7 @@
 #include "scenario.h"
 #include "sdlsound.h"
 #include "sounds.h"
+#include "steam_workshop.h"
 #include "string_formatter.h"
 #include "text_snippets.h"
 #include "translation.h"
@@ -67,15 +68,17 @@ static const mod_id MOD_INFORMATION_dda_tutorial( "dda_tutorial" );
 
 enum class main_menu_opts : int {
     MOTD = 0,
-    NEWCHAR,
-    LOADCHAR,
-    WORLD,
-    TUTORIAL,
-    SETTINGS,
-    HELP,
-    CREDITS,
-    QUIT,
-    NUM_MENU_OPTS,
+
+    NEWCHAR = 1,
+    LOADCHAR = 2,
+    WORLD = 3,
+    TUTORIAL = 4,
+    WORKSHOP = 5,
+    SETTINGS = 6,
+    HELP = 7,
+    CREDITS = 8,
+    QUIT = 9,
+    NUM_MENU_OPTS
 };
 
 std::string main_menu::queued_world_to_load;
@@ -187,6 +190,17 @@ void main_menu::display_sub_menu( int sel, const point &bottom_left, int sel_lin
             //~ Message Of The Day
             display_text( mmenu_motd, _( "MOTD" ), sel_line );
             return;
+
+        case main_menu_opts::WORKSHOP:
+            for( int i = 0; static_cast<size_t>( i ) < vWorkshopSubItems.size(); ++i ) {
+                nc_color clr = i == sel2 ? hilite( c_yellow ) : c_yellow;
+                sub_opts.push_back( shortcut_text( clr, vWorkshopSubItems[i] ) );
+                int len = utf8_width( shortcut_text( clr, vWorkshopSubItems[i] ), true );
+                if( len > xlen ) {
+                    xlen = len;
+                }
+            }
+            break;
         case main_menu_opts::SETTINGS:
             for( int i = 0; static_cast<size_t>( i ) < vSettingsSubItems.size(); ++i ) {
                 nc_color clr = i == sel2 ? hilite( c_yellow ) : c_yellow;
@@ -461,6 +475,7 @@ void main_menu::init_strings()
     vMenuItems.emplace_back( pgettext( "Main Menu", "Lo<a|A>d" ) );
     vMenuItems.emplace_back( pgettext( "Main Menu", "<W|w>orld" ) );
     vMenuItems.emplace_back( pgettext( "Main Menu", "T<u|U>torial Game" ) );
+    vMenuItems.emplace_back( pgettext( "Main Menu", "Worksho<p|p>" ) );
     vMenuItems.emplace_back( pgettext( "Main Menu", "Se<t|T>tings" ) );
     vMenuItems.emplace_back( pgettext( "Main Menu", "H<e|E|?>lp" ) );
     vMenuItems.emplace_back( pgettext( "Main Menu", "<C|c>redits" ) );
@@ -511,6 +526,15 @@ void main_menu::init_strings()
     vWorldHotkeys.clear();
     for( const std::string &item : vWorldSubItems ) {
         vWorldHotkeys.push_back( get_hotkeys( item ) );
+    }
+
+    vWorkshopSubItems.clear();
+    vWorkshopSubItems.emplace_back( pgettext( "Main Menu|Workshop", "<U|u>pload" ) );
+    vWorkshopSubItems.emplace_back( pgettext( "Main Menu|Workshop", "<L|l>egal Agreement" ) );
+
+    vWorkshopHotkeys.clear();
+    for( const std::string &key : vWorkshopSubItems ) {
+        vWorkshopHotkeys.push_back( get_hotkeys( key ) );
     }
 
     vSettingsSubItems.clear();
@@ -678,6 +702,16 @@ bool main_menu::opening_screen()
                 }
             }
         }
+        if( sel1 == getopt( main_menu_opts::WORKSHOP ) ) {
+            for( int i = 0; static_cast<size_t>( i ) < vWorkshopSubItems.size(); ++i ) {
+                for( const std::string &hotkey : vWorkshopHotkeys[i] ) {
+                    if( sInput.text == hotkey ) {
+                        sel2 = i;
+                        action = "CONFIRM";
+                    }
+                }
+            }
+        }
         if( sel1 == getopt( main_menu_opts::SETTINGS ) ) {
             for( int i = 0; !match && static_cast<size_t>( i ) < vSettingsSubItems.size(); ++i ) {
                 for( const std::string &hotkey : vSettingsHotkeys[i] ) {
@@ -786,6 +820,9 @@ bool main_menu::opening_screen()
                 case main_menu_opts::NEWCHAR:
                     max_item_count = vNewGameSubItems.size();
                     break;
+                case main_menu_opts::WORKSHOP:
+                    max_item_count = vWorkshopSubItems.size();
+                    break;
                 case main_menu_opts::SETTINGS:
                     max_item_count = vSettingsSubItems.size();
                     break;
@@ -850,6 +887,16 @@ bool main_menu::opening_screen()
                         if( g->gametype() == special_game_type::TUTORIAL ) {
                             load_game = true;
                         }
+                    }
+                    break;
+                case main_menu_opts::WORKSHOP:
+                    switch( sel2 ) {
+                        case 0:
+                            steam_workshop_upload();
+                            break;
+                        case 1:
+                            load_workshop_legal_agreement();
+                            break;
                     }
                     break;
                 case main_menu_opts::SETTINGS:
