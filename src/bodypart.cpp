@@ -1142,6 +1142,11 @@ void bodypart::mod_frostbite_timer( int mod )
     frostbite_timer += mod;
 }
 
+void bodypart::apply_wound( const damage_instance &dam )
+{
+    wounds.add_wound( dam, rng( 0, 100 ) );
+}
+
 void bodypart::serialize( JsonOut &json ) const
 {
     json.start_object();

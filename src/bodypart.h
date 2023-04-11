@@ -23,6 +23,7 @@
 #include "subbodypart.h"
 #include "localized_comparator.h"
 #include "type_id.h"
+#include "wound.h"
 
 class JsonObject;
 class JsonOut;
@@ -444,6 +445,8 @@ class bodypart
         int damage_bandaged = 0;
         int damage_disinfected = 0;
 
+        limb_wounds wounds;
+
         encumbrance_data encumb_data; // NOLINT(cata-serialize)
 
         std::array<int, NUM_WATER_TOLERANCE> mut_drench; // NOLINT(cata-serialize)
@@ -495,6 +498,7 @@ class bodypart
         int get_temp_conv() const;
         int get_bmi_encumbrance_threshold() const;
         float get_bmi_encumbrance_scalar() const;
+        void apply_wound( const damage_instance &dam );
 
         std::array<int, NUM_WATER_TOLERANCE> get_mut_drench() const;
 

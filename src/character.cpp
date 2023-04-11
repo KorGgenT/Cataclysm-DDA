@@ -7770,11 +7770,16 @@ void Character::on_hit( Creature *source, bodypart_id bp_hit,
     enchantment_cache->cast_hit_me( *this, source );
 }
 
+void Character::wound_limb( bodypart_id hurt, const damage_instance &dam )
+{
+    body[hurt.id()].apply_wound( dam );
+}
+
 /*
     Where damage to character is actually applied to hit body parts
     Might be where to put bleed stuff rather than in player::deal_damage()
  */
-void Character::apply_damage( Creature *source, bodypart_id hurt, int dam,
+void Character::apply_damage( Creature *source, bodypart_id hurt, const damage_instance &dam,
                               const bool bypass_med )
 {
     if( is_dead_state() || has_trait( trait_DEBUG_NODMG ) || has_effect( effect_incorporeal ) ) {
@@ -7789,14 +7794,8 @@ void Character::apply_damage( Creature *source, bodypart_id hurt, int dam,
         hurt = body_part_torso;
     }
 
-    mod_pain( dam / 2 );
-
     const bodypart_id &part_to_damage = hurt->main_part;
-
-    const int dam_to_bodypart = std::min( dam, get_part_hp_cur( part_to_damage ) );
-
-    mod_part_hp_cur( part_to_damage, - dam_to_bodypart );
-    get_event_bus().send<event_type::character_takes_damage>( getID(), dam_to_bodypart );
+    get_event_bus().send<event_type::character_takes_damage>( getID(), dam.total_damage() );
 
     if( !weapon.is_null() && !can_wield( weapon ).success() &&
         can_drop( weapon ).success() ) {
@@ -7808,17 +7807,15 @@ void Character::apply_damage( Creature *source, bodypart_id hurt, int dam,
     if( has_effect( effect_mending, part_to_damage.id() ) && ( source == nullptr ||
             !source->is_hallucination() ) ) {
         effect &e = get_effect( effect_mending, part_to_damage );
-        float remove_mend = dam / 20.0f;
+        float remove_mend = dam.total_damage() / 20.0f;
         e.mod_duration( -e.get_max_duration() * remove_mend );
     }
 
-    if( dam > get_painkiller() ) {
-        on_hurt( source );
-    }
+    wound_limb( hurt, dam );
 
     if( !bypass_med ) {
         // remove healing effects if damaged
-        int remove_med = roll_remainder( dam / 5.0f );
+        int remove_med = roll_remainder( dam.total_damage() / 5.0f );
         if( remove_med > 0 && has_effect( effect_bandaged, part_to_damage.id() ) ) {
             remove_med -= reduce_healing_effect( effect_bandaged, remove_med, part_to_damage );
         }

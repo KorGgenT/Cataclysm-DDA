@@ -86,6 +86,7 @@ class vpart_reference;
 class vehicle;
 struct bionic;
 struct construction;
+struct damage_instance;
 struct dealt_projectile_attack;
 struct display_proficiency;
 /// @brief Item slot used to apply modifications from food and meds
@@ -1125,10 +1126,11 @@ class Character : public Creature, public visitable
                      float difficulty = INT_MIN, dealt_projectile_attack const *proj = nullptr ) override;
         // any side effects that might happen when the Character hits a Creature
         void did_hit( Creature &target );
-
+        // add a wound to the limb
+        void wound_limb( bodypart_id hurt, const damage_instance &dam );
         /** Actually hurt the player, hurts a body_part directly, no armor reduction */
-        void apply_damage( Creature *source, bodypart_id hurt, int dam,
-                           bool bypass_med = false ) override;
+        void apply_damage( Creature *source, bodypart_id hurt, const damage_instance &dam,
+                           bool bypass_med = false );
         /** Calls Creature::deal_damage and handles damaged effects (waking up, etc.) */
         dealt_damage_instance deal_damage( Creature *source, bodypart_id bp,
                                            const damage_instance &d,
