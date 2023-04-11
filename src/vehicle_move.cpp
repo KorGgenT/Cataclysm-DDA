@@ -1089,8 +1089,8 @@ veh_collision vehicle::part_collision( int part, const tripoint &p,
                                   critter->get_armor_type( damage_cut, bodypart_id( "torso" ) ) :
                                   critter->get_armor_type( damage_bash, bodypart_id( "torso" ) );
                 dam = std::max( 0, dam - armor );
-                critter->apply_damage( driver, bodypart_id( "torso" ), dam );
-                if( vpi.has_flag( "SHARP" ) ) {
+                critter->apply_damage( driver, bodypart_id( "torso" ), damage_instance( damage_type::STAB, dam ) );
+                if( part_flag( ret.part, "SHARP" ) ) {
                     critter->add_effect( effect_source( driver ), effect_bleed, 1_minutes * rng( 1, dam ),
                                          critter->get_random_body_part_of_type( body_part_type::type::torso ) );
                 } else if( dam > 18 && rng( 1, 20 ) > 15 ) {

@@ -224,7 +224,7 @@ void suffer::water_damage( Character &you, const trait_id &mut_id )
         const float wetness_percentage = elem.second.get_wetness_percentage();
         const int dmg = mut_id->weakness_to_water * wetness_percentage;
         if( dmg > 0 ) {
-            you.apply_damage( nullptr, elem.first, dmg );
+            you.apply_damage( nullptr, elem.first, damage_instance( damage_type::PURE, dmg ) );
             you.add_msg_player_or_npc( m_bad, _( "Your %s is damaged by the water." ),
                                        _( "<npcname>'s %s is damaged by the water." ),
                                        body_part_name( elem.first ) );
@@ -308,7 +308,8 @@ void suffer::while_underwater( Character &you )
             you.mod_power_level( -bio_gills->power_trigger );
         } else {
             you.add_msg_if_player( m_bad, _( "You're drowning!" ) );
-            you.apply_damage( nullptr, bodypart_id( "torso" ), rng( 1, 4 ) );
+            you.apply_damage( nullptr, bodypart_id( "head" ), damage_instance( damage_type::BIOLOGICAL, rng( 1,
+                              4 ) ) );
         }
     }
     if( you.has_trait( trait_FRESHWATEROSMOSIS ) &&
@@ -983,9 +984,9 @@ void suffer::from_sunburn( Character &you, bool severe )
             // an HP pool with the head, those parts take an unfair share of damage in relation
             // to the torso, which only has one part.  Increase torso damage to balance this.
             if( bp == bodypart_id( "torso" ) ) {
-                you.apply_damage( nullptr, bp, 2 );
+                you.apply_damage( nullptr, bp, damage_instance( damage_type::HEAT, 2 ) );
             } else {
-                you.apply_damage( nullptr, bp, 1 );
+                you.apply_damage( nullptr, bp, damage_instance( damage_type::HEAT, 1 ) );
             }
             return Damage;
         } else {
@@ -1696,7 +1697,7 @@ void suffer::from_tourniquet( Character &you )
     for( const bodypart_id &bp : you.get_all_body_parts( get_body_part_flags::only_main ) ) {
         if( you.worn_with_flag( flag_TOURNIQUET, bp ) && one_turn_in( 30_seconds ) ) {
             you.mod_pain( 1 );
-            you.apply_damage( nullptr, bp, 1, true );
+            you.apply_damage( nullptr, bp, damage_instance( damage_type::BIOLOGICAL, 1 ), true );
             you.add_msg_player_or_npc( m_bad, _( "Your tourniquet hurts you." ),
                                        _( "<npcname> is hurting from the tourniquet." ) );
         }

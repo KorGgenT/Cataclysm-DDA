@@ -3021,7 +3021,7 @@ void debug()
                 part = parts[smenu.ret];
             }
             if( query_int( dbg_damage, _( "Damage self for how much?  hp: %s" ), part.id().c_str() ) ) {
-                player_character.apply_damage( nullptr, part, dbg_damage );
+                player_character.apply_damage( nullptr, part, damage_instance( damage_type::CUT, dbg_damage ) );
                 if( player_character.is_dead_state() ) {
                     player_character.die( nullptr );
                 }

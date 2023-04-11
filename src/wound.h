@@ -7,10 +7,12 @@
 
 #include "body_part_set.h"
 #include "calendar.h"
+#include "damage.h"
 #include "string_id.h"
 #include "translation.h"
 #include "units.h"
 
+class body_part_set;
 class damage_instance;
 class JsonObject;
 class wound_type;

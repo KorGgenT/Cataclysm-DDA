@@ -6993,7 +6993,7 @@ void Character::cough( bool harmful, int loudness )
         const int malus = get_stamina_max() * 0.05; // 5% max stamina
         mod_stamina( -malus );
         if( stam < malus && x_in_y( malus - stam, malus ) && one_in( 6 ) ) {
-            apply_damage( nullptr, body_part_torso, 1 );
+            apply_damage( nullptr, body_part_torso, damage_instance( damage_type::BIOLOGICAL, 1 ) );
         }
     }
 
@@ -10030,14 +10030,14 @@ void Character::process_one_effect( effect &it, bool is_new )
                 } else {
                     add_msg_if_player( m_bad, _( "Your %s hurts!" ), body_part_name_accusative( body_part_torso ) );
                 }
-                apply_damage( nullptr, body_part_torso, val, true );
+                apply_damage( nullptr, body_part_torso, damage_instance( damage_type::BIOLOGICAL, val ), true );
             } else {
                 if( val > 5 ) {
                     add_msg_if_player( m_bad, _( "Your %s HURTS!" ), body_part_name_accusative( bp ) );
                 } else {
                     add_msg_if_player( m_bad, _( "Your %s hurts!" ), body_part_name_accusative( bp ) );
                 }
-                apply_damage( nullptr, bp, val, true );
+                apply_damage( nullptr, bp, damage_instance( damage_type::BIOLOGICAL, val ), true );
             }
         }
     }
@@ -11641,7 +11641,7 @@ void Character::knock_back_to( const tripoint &to )
 
         // It's some kind of wall.
         // TODO: who knocked us back? Maybe that creature should be the source of the damage?
-        apply_damage( nullptr, bodypart_id( "torso" ), 3 );
+        apply_damage( nullptr, bodypart_id( "torso" ), damage_instance( damage_type::BASH, 3 ) );
         add_effect( effect_stunned, 2_turns );
         add_msg_player_or_npc( _( "You bounce off a %s!" ), _( "<npcname> bounces off a %s!" ),
                                here.obstacle_name( to ) );

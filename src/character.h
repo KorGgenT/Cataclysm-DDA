@@ -1130,7 +1130,7 @@ class Character : public Creature, public visitable
         void wound_limb( bodypart_id hurt, const damage_instance &dam );
         /** Actually hurt the player, hurts a body_part directly, no armor reduction */
         void apply_damage( Creature *source, bodypart_id hurt, const damage_instance &dam,
-                           bool bypass_med = false );
+                           bool bypass_med = false ) override;
         /** Calls Creature::deal_damage and handles damaged effects (waking up, etc.) */
         dealt_damage_instance deal_damage( Creature *source, bodypart_id bp,
                                            const damage_instance &d,

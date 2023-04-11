@@ -2243,8 +2243,8 @@ void iexamine::flower_poppy( Character &you, const tripoint &examp )
         add_msg( m_bad, _( "The flower's fragrance makes you extremely drowsy…" ) );
         you.fall_asleep( 2_hours );
         add_msg( m_bad, _( "Your legs are covered in the poppy's roots!" ) );
-        you.apply_damage( nullptr, bodypart_id( "leg_l" ), 4 );
-        you.apply_damage( nullptr, bodypart_id( "leg_r" ), 4 );
+        you.apply_damage( nullptr, bodypart_id( "leg_l" ), damage_instance( damage_type::STAB, 4 ) );
+        you.apply_damage( nullptr, bodypart_id( "leg_r" ), damage_instance( damage_type::STAB, 4 ) );
         you.moves -= 50;
     }
 
@@ -2271,8 +2271,8 @@ void iexamine::flower_cactus( Character &you, const tripoint &examp )
 
     if( one_in( 6 ) ) {
         add_msg( m_bad, _( "The cactus' nettles sting you!" ) );
-        you.apply_damage( nullptr, bodypart_id( "arm_l" ), 4 );
-        you.apply_damage( nullptr, bodypart_id( "arm_r" ), 4 );
+        you.apply_damage( nullptr, bodypart_id( "arm_l" ), damage_instance( damage_type::STAB, 4 ) );
+        you.apply_damage( nullptr, bodypart_id( "arm_r" ), damage_instance( damage_type::STAB, 4 ) );
     }
 
     here.furn_set( examp, f_null );

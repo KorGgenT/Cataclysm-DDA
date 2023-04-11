@@ -329,7 +329,8 @@ static void do_blast( const Creature *source, const tripoint &p, const float pow
             const double dmg = std::max( force - critter->get_armor_type( damage_bash,
                                          bodypart_id( "torso" ) ) / 2.0, 0.0 );
             const int actual_dmg = rng_float( dmg * 2, dmg * 3 );
-            critter->apply_damage( mutable_source, bodypart_id( "torso" ), actual_dmg );
+            critter->apply_damage( mutable_source, bodypart_id( "torso" ), damage_instance( damage_type::BASH,
+                                   actual_dmg ) );
             critter->check_dead_state();
             add_msg_debug( debugmode::DF_EXPLOSION, "Blast hits %s for %d damage", critter->disp_name(),
                            actual_dmg );

@@ -1217,7 +1217,7 @@ dealt_damage_instance Creature::deal_damage( Creature *source, bodypart_id bp,
     }
     mod_pain( total_pain );
 
-    apply_damage( source, bp, total_damage );
+    apply_damage( source, bp, d );
 
     if( wp != nullptr ) {
         wp->apply_effects( *this, total_damage, attack_copy );

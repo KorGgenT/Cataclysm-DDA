@@ -109,7 +109,7 @@ bool wound::process( const time_duration &t, double healing_factor )
 {
     age += t * healing_factor * ( 1 - infection );
     // stand-in sentinel value
-    infection += 0.01 * contamination;
+    infection += 0.01 * contamination * to_seconds<double>( t );
 
     return id->heal_time && age >= *id->heal_time || is_infected();
 }
@@ -140,7 +140,7 @@ double wound::infection_progression() const
 
 bool wound::is_infected() const
 {
-    return infection_progression() >= 100.0;
+    return infection_progression() >= 1.0;
 }
 
 bool wound::overlaps( int target ) const

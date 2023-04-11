@@ -1657,7 +1657,7 @@ void map::player_in_field( Character &you )
                             continue;
                         }
 
-                        you.apply_damage( nullptr, bp, dmg, true );
+                        you.apply_damage( nullptr, bp, damage_instance( damage_type::ELECTRIC, dmg ), true );
                     }
                 } else {
                     you.add_msg_player_or_npc( _( "The electric cloud doesn't affect you." ),
