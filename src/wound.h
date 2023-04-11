@@ -9,6 +9,7 @@
 #include "calendar.h"
 #include "string_id.h"
 #include "translation.h"
+#include "units.h"
 
 class damage_instance;
 class JsonObject;
@@ -25,7 +26,11 @@ class wound_type
         wound_type() = default;
 
         void load( const JsonObject &jo, const std::string & );
-        void load_wound( const JsonObject &jo, const std::string &src );
+        static void load_wound( const JsonObject &jo, const std::string &src );
+
+        static const std::vector<wound_type> &get_all();
+        static void finalize();
+        static std::map<damage_type, std::vector<wound_id>> wound_lookup;
 
         wound_id id;
         bool was_loaded;
@@ -33,7 +38,12 @@ class wound_type
         translation name;
         translation description;
 
+        // this is a representation of how often this wound would be damaged by attacks, and how they overlap
+        // 0-100
+        int size;
         int pain;
+        // this is basically negative armor, effectively giving you worse wounds with the same amount of damage
+        int sunder;
         int min_damage = 1;
         int max_damage = INT_MAX;
         damage_type dmg_type;
@@ -53,8 +63,12 @@ class wound_type
 class wound
 {
     private:
-        // wound_id, intensity multiplier (which multiplies various wound effects)
-        std::vector<std::pair<wound_id, double>> wound_group;
+        wound_id id;
+        // represents the location of the wound and how they overlap
+        // 0-100
+        int location;
+        // multiplies various wound effects
+        double intensity_multiplier;
         // how old the wound is. if older than heal_time, turns this wound into the next one.
         time_duration age;
         // the percentage to full infection this wound is at. ticks up based on how dirty it is and perhaps other factors.
@@ -72,9 +86,18 @@ class wound
         double infection_progression() const;
 
         bool is_infected() const;
+        bool overlaps( int location ) const;
 
         std::optional<wound_id> heals_into() const;
         std::optional<wound_id> infects_into() const;
+
+        // creates a new version of this wound, with inherited values
+        // will error if there is no healed version. make sure to check first.
+        wound wound_healed() const;
+        wound wound_infected() const;
+
+        int sunder() const;
+        damage_type damage_type() const;
 };
 
 // this is all of the wounds that are attached to a limb.
@@ -85,10 +108,12 @@ class limb_wounds
         std::vector<wound> wounds;
     public:
         limb_wounds() = default;
-        // constructs a new wound and adds it to the list
-        void add_wound( const wound_id &id );
+        void add_wound( const damage_instance &damage, int location );
+        void add_wound( const wound &wnd );
         // healing factor is a multiple to duration for age so the wound heals faster.
         void process( const time_duration &t, double healing_factor );
+        // the effective negative armor at the location / damage type
+        int sunder( damage_type dmg_type, int location ) const;
 };
 
 #endif // CATA_SRC_WOUND_H

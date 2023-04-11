@@ -109,6 +109,7 @@
 #include "weather_type.h"
 #include "widget.h"
 #include "worldfactory.h"
+#include "wound.h"
 
 DynamicDataLoader::DynamicDataLoader()
 {
@@ -747,6 +748,7 @@ void DynamicDataLoader::finalize_loaded_data( loading_ui &ui )
             { _( "Anatomies" ), &anatomy::finalize_all },
             { _( "Mutations" ), &mutation_branch::finalize_all },
             { _( "Achievements" ), &achievement::finalize },
+            { _( "Wounds" ), &wound_type::finalize },
             { _( "Damage info orders" ), &damage_info_order::finalize_all },
             { _( "Widgets" ), &widget::finalize },
             { _( "Fault fixes" ), &fault_fix::finalize },

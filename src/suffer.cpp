@@ -364,12 +364,7 @@ void suffer::while_grabbed( Character &you )
     // a few warnings before starting to take damage
     if( you.oxygen <= 5 ) {
         you.add_msg_if_player( m_bad, _( "You're suffocating!" ) );
-        if( uistate.distraction_oxygen && you.is_avatar() ) {
-            g->cancel_activity_or_ignore_query( distraction_type::oxygen, _( "You're suffocating!" ) );
-        }
-        // your characters chest is being crushed and you are dying
-        you.apply_damage( nullptr, you.get_random_body_part_of_type( body_part_type::type::torso ), rng( 1,
-                          4 ) );
+        you.add_effect( efftype_id( "sleep" ), 1_seconds );
     } else if( you.oxygen <= 15 ) {
         you.add_msg_if_player( m_bad, _( "You can't breathe with all this weight!" ) );
     } else if( you.oxygen <= 25 ) {

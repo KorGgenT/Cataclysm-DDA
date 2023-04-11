@@ -1811,7 +1811,7 @@ float Character::stability_roll() const
 
 bool Character::is_dead_state() const
 {
-    return get_bloodvol_index() < 0.5f;
+    return oxygen < -15 || get_bloodvol_index() < 0.5f;
 }
 
 void Character::on_try_dodge()
