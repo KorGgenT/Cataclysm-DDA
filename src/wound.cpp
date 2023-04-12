@@ -3,6 +3,8 @@
 #include "damage.h"
 #include "generic_factory.h"
 
+std::map<damage_type, std::vector<wound_id>> wound_type::wound_lookup;
+
 namespace
 {
 generic_factory<wound_type> wound_factory( "wound" );
