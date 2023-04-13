@@ -47,8 +47,8 @@ void wound_type::load( const JsonObject &jo, const std::string & )
     optional( jo, was_loaded, "size", size, 0 );
     optional( jo, was_loaded, "sunder", sunder, 0 );
     optional( jo, was_loaded, "pain", pain );
-    optional( jo, was_loaded, "min_damage", min_damage );
-    optional( jo, was_loaded, "max_damage", max_damage );
+    optional( jo, was_loaded, "min_damage", min_damage, 1 );
+    optional( jo, was_loaded, "max_damage", max_damage, INT_MAX );
     mandatory( jo, was_loaded, "damage_type", dmg_type );
     mandatory( jo, was_loaded, "limbs", limbs );
     optional( jo, was_loaded, "bleed", bleed, volume_reader{}, 0_ml );
@@ -71,7 +71,7 @@ wound::wound( const damage_unit &damage )
     // damage unit lookup here
     std::vector<wound_id> potential_hurt;
     for( const wound_id &wnd : lookup_iter->second ) {
-        if( wnd->min_damage >= damage.amount && wnd->max_damage <= damage.amount ) {
+        if( wnd->min_damage <= damage.amount && wnd->max_damage >= damage.amount ) {
             potential_hurt.push_back( wnd );
         }
     }
@@ -79,6 +79,16 @@ wound::wound( const damage_unit &damage )
     id = potential_hurt[pick_random];
     intensity_multiplier = 1.0 + static_cast<double>( damage.amount - id->min_damage ) /
                            static_cast<double>( id->max_damage - id->min_damage );
+}
+
+std::string wound::name() const
+{
+    return id->name.translated();
+}
+
+std::string wound::description() const
+{
+    return id->description.translated();
 }
 
 wound wound::wound_healed() const
@@ -162,6 +172,11 @@ int wound::sunder() const
 damage_type wound::damage_type() const
 {
     return id->dmg_type;
+}
+
+const std::vector<wound> &limb_wounds::get_all_wounds() const
+{
+    return wounds;
 }
 
 int limb_wounds::sunder( damage_type dmg_type, int location ) const

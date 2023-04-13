@@ -499,6 +499,7 @@ class bodypart
         int get_bmi_encumbrance_threshold() const;
         float get_bmi_encumbrance_scalar() const;
         void apply_wound( const damage_instance &dam );
+        const std::vector<wound> &get_all_wounds() const;
 
         std::array<int, NUM_WATER_TOLERANCE> get_mut_drench() const;
 

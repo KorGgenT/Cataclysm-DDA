@@ -1,0 +1,27 @@
+[
+    {
+        "type": "wound",
+        "id": "small_cut",
+        "name": "small cut",
+        "description": "ouch! it hurts!",
+        "pain": 1,
+        "bleed": "1 ml",
+        "heal_time": "1 day",
+        "limbs": [ "head" ],
+        "min_damage": 1,
+        "max_damage": 5,
+        "damage_type": "cut"
+    },
+    {
+        "type": "wound",
+        "id": "cut",
+        "name": "cut",
+        "description": "ouch! it hurts!",
+        "pain": 5,
+        "bleed": "1 ml",
+        "heal_time": "1 day",
+        "limbs": [ "head" ],
+        "min_damage": 5,
+        "damage_type": "cut"
+    }
+]

@@ -10,6 +10,7 @@
         "limbs": [ "head" ],
         "min_damage": 1,
         "heals_into": "debug_scar",
-        "infects_into": "debug_wound"
+        "infects_into": "debug_wound",
+        "damage_type": "none"
     }
 ]

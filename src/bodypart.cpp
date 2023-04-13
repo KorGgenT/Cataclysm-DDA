@@ -1147,6 +1147,11 @@ void bodypart::apply_wound( const damage_instance &dam )
     wounds.add_wound( dam, rng( 0, 100 ) );
 }
 
+const std::vector<wound> &bodypart::get_all_wounds() const
+{
+    return wounds.get_all_wounds();
+}
+
 void bodypart::serialize( JsonOut &json ) const
 {
     json.start_object();

@@ -100,6 +100,9 @@ class wound
 
         int sunder() const;
         damage_type damage_type() const;
+
+        std::string name() const;
+        std::string description() const;
 };
 
 // this is all of the wounds that are attached to a limb.
@@ -116,6 +119,7 @@ class limb_wounds
         void process( const time_duration &t, double healing_factor );
         // the effective negative armor at the location / damage type
         int sunder( damage_type dmg_type, int location ) const;
+        const std::vector<wound> &get_all_wounds() const;
 };
 
 #endif // CATA_SRC_WOUND_H
