@@ -6,6 +6,7 @@
     "authors": [ "esotericist", "dranitski" ],
     "description": "Adds indicator icon if a creature sees the player.  Adds status icons for run, crouch, prone, bleeding, light on top of player tile.",
     "category": "graphical",
+    "steam_id": 0,
     "dependencies": [ "dda" ]
   }
 ]

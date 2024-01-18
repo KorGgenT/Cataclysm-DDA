@@ -8,6 +8,7 @@
     "description": "An untouched land that mankind has yet to reach.  Disables most traces of civilization for that 'innawood' experience.  Recommend size of cities be set to 0.",
     "category": "total_conversion",
     "dependencies": [ "dda" ],
+    "steam_id": 0,
     "obsolete": false
   }
 ]

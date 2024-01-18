@@ -8,6 +8,7 @@
     "category": "content",
     "dependencies": [ "dda" ],
     "version": "0.1",
+    "steam_id": 0,
     "obsolete": false
   }
 ]

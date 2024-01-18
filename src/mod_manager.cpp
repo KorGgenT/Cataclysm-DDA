@@ -139,6 +139,18 @@ void mod_manager::clear()
     default_mods.clear();
 }
 
+static cata_path get_workshop_folder()
+{
+    char buffer[MAX_PATH];
+    GetModuleFileName( NULL, buffer, MAX_PATH );
+    const std::string f( buffer );
+    std::string p( f.substr( 0, f.find_last_of( "\\/" ) ) );
+    p = p.substr( 0, p.find_last_of( "\\/" ) );
+    p = p.substr( 0, p.find_last_of( "\\/" ) );
+
+    return cata_path() + p + "\\workshop\\content\\2330750";
+}
+
 void mod_manager::refresh_mod_list()
 {
     clear();
@@ -146,6 +158,7 @@ void mod_manager::refresh_mod_list()
     std::map<mod_id, std::vector<mod_id>> mod_dependency_map;
     load_mods_from( PATH_INFO::moddir() );
     load_mods_from( PATH_INFO::user_moddir_path() );
+    load_mods_from( get_workshop_folder() );
 
     if( file_exist( PATH_INFO::mods_dev_default() ) ) {
         load_mod_info( PATH_INFO::mods_dev_default() );
@@ -263,6 +276,9 @@ void mod_manager::load_modfile( const JsonObject &jo, const cata_path &path )
     assign( jo, "dependencies", modfile.dependencies );
     assign( jo, "core", modfile.core );
     assign( jo, "obsolete", modfile.obsolete );
+    if( jo.has_int( "steam_id" ) ) {
+        assign( jo, "steam_id", modfile.steam_id );
+    }
 
     if( std::find( modfile.dependencies.begin(), modfile.dependencies.end(),
                    modfile.ident ) != modfile.dependencies.end() ) {

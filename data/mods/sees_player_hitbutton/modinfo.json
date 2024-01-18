@@ -6,6 +6,7 @@
     "authors": [ "esotericist", "AnthonBerg" ],
     "description": "Adds indicator icon if a creature sees the player.  Designed for the HitButton isometric tileset.",
     "category": "graphical",
+    "steam_id": 0,
     "dependencies": [ "dda" ]
   }
 ]

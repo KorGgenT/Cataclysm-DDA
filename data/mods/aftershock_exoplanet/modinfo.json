@@ -7,6 +7,7 @@
     "maintainers": [ "Maleclypse", "Candlebury", "Mom_Bun" ],
     "description": "An experimental implementation of Aftershock's exoplanet region, not recommended for actual playthroughs.  Adds no new content by itself, and requires the main mod to function correctly.",
     "category": "total_conversion",
+    "steam_id": 0,
     "dependencies": [ "dda", "aftershock" ]
   }
 ]
