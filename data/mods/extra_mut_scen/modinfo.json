@@ -6,6 +6,7 @@
     "authors": [ "Saicchi" ],
     "description": "Extra scenarios with all possible mutation traits and thresholds.",
     "category": "misc_additions",
+    "steam_id": 0,
     "dependencies": [ "dda" ]
   }
 ]
