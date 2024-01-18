@@ -6,6 +6,7 @@
     "description": "Numerous military themed professions",
     "category": "rebalance",
     "dependencies": [ "dda" ],
+    "steam_id": 0,
     "obsolete": true
   }
 ]

@@ -9,6 +9,7 @@
     "//": "Spiritual successor to blazemod, do not use together with the legacy blazemod unless you know what you are doing.",
     "category": "content",
     "obsolete": true,
+    "steam_id": 0,
     "dependencies": [ "dda" ]
   }
 ]

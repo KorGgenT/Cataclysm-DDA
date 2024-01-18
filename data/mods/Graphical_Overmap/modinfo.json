@@ -8,6 +8,7 @@
     "description": "Gives the overmap a graphical overhaul.  Please refer to readme for installation.",
     "category": "graphical",
     "obsolete": true,
+    "steam_id": 0,
     "dependencies": [ "dda" ]
   }
 ]

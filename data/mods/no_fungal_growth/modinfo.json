@@ -6,6 +6,7 @@
     "authors": [ "eltank" ],
     "description": "Removes the exponential growth ability of fungaloids.",
     "category": "rebalance",
+    "steam_id": 0,
     "dependencies": [ "dda" ]
   },
   {
