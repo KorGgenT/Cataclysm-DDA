@@ -6,6 +6,7 @@
     "authors": [ "I-am-Erk" ],
     "description": "Adds a translation for some of the weirder dialogue in game.  Keeps the original flavor dialogue visible.",
     "category": "accessibility",
+    "steam_id": 0,
     "dependencies": [ "dda" ]
   }
 ]

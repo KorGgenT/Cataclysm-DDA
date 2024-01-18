@@ -9,7 +9,8 @@
     "dependencies": [ "dda" ],
     "version": "0.1",
     "obsolete": true,
-    "//": "should not be deleted until actual biomes exist in the game"
+    "//": "should not be deleted until actual biomes exist in the game",
+    "steam_id": 0
   },
   {
     "type": "EXTERNAL_OPTION",

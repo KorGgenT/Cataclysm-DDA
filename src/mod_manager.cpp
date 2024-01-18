@@ -306,6 +306,9 @@ void mod_manager::load_modfile( const JsonObject &jo, const cata_path &path )
     assign( jo, "core", modfile.core );
     assign( jo, "obsolete", modfile.obsolete );
     assign( jo, "loading_images", modfile.loading_images );
+    if( jo.has_int( "steam_id" ) ) {
+        assign( jo, "steam_id", modfile.steam_id );
+    }
 
     if( std::find( modfile.dependencies.begin(), modfile.dependencies.end(),
                    modfile.ident ) != modfile.dependencies.end() ) {

@@ -9,6 +9,7 @@
     "category": "total_conversion",
     "dependencies": [ "dda" ],
     "conflicts": [ "mindovermatter", "generic_guns", "skyisland" ],
-    "loading_images": [ "aftershock.png" ]
+    "loading_images": [ "aftershock.png" ],
+    "steam_id": 0
   }
 ]

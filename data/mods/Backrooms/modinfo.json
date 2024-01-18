@@ -9,6 +9,7 @@
     "category": "total_conversion",
     "conflicts": [ "desertpack", "tropicata" ],
     "dependencies": [ "dda" ],
+    "steam_id": 0,
     "version": "0.1"
   }
 ]

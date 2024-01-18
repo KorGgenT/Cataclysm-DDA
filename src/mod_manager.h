@@ -41,6 +41,8 @@ struct MOD_INFORMATION {
         /** Directory to load JSON from relative to directory containing modinfo.json */
         cata_path path;
 
+        // the steam workshop id for the mod. in-repo mods should have a value of 0. unuploaded mods should be left blank.
+        cata::optional<uint64_t> steam_id = cata::nullopt;
         /** All authors who have added content to the mod (excluding maintenance changes) */
         std::set<std::string> authors;
 

@@ -8,6 +8,7 @@
     "description": "Moving towards a survival horror full conversion mod set in a mostly abandoned extrasolar colony far from Earth hundreds of years from today.",
     "category": "content",
     "obsolete": true,
+    "steam_id": 0,
     "dependencies": [ "dda" ]
   }
 ]

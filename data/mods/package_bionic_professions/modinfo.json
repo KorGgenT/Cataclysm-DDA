@@ -6,6 +6,7 @@
     "authors": [ "Erk/Everyone" ],
     "description": "Numerous bionic starting professions.",
     "category": "content",
+    "steam_id": 0,
     "dependencies": [ "dda" ]
   }
 ]

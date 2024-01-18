@@ -6,6 +6,7 @@
     "description": "Core content for Cataclysm-DDA",
     "category": "content",
     "core": true,
+    "steam_id": 0,
     "path": "../../json"
   }
 ]
