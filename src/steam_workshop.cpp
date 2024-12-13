@@ -1,9 +1,10 @@
 #include "steam_workshop.h"
 
+#include <optional>
+
 #include "achievement_steam.h"
 #include "debug.h"
 #include "mod_manager.h"
-#include "optional.h"
 #include "popup.h"
 #include "ui.h"
 
@@ -32,7 +33,7 @@ void load_workshop_legal_agreement()
     SteamFriends()->ActivateGameOverlayToWebPage( legal_agreement_link.c_str() );
 }
 
-static cata::optional<mod_id> pick_mod()
+static std::optional<mod_id> pick_mod()
 {
     mod_manager mman;
     mman.refresh_mod_list();
@@ -48,7 +49,7 @@ static cata::optional<mod_id> pick_mod()
     modlist.title = "Choose a mod to upload to Steam Workshop.";
     modlist.query();
     if( modlist.ret < 0 ) {
-        return cata::nullopt;
+        return std::nullopt;
     }
 
     auto mod_iter = moduilist.begin() + modlist.ret;
@@ -71,7 +72,7 @@ void steam_workshop_update( const mod_id &mod, const std::string path )
 
 void steam_workshop_upload()
 {
-    cata::optional<mod_id> mod_opt = pick_mod();
+    std::optional<mod_id> mod_opt = pick_mod();
     if( !mod_opt ) {
         return;
     }

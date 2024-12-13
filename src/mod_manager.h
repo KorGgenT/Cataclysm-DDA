@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <optional>
 
 #include "cata_path.h"
 #include "output.h"
@@ -42,7 +43,7 @@ struct MOD_INFORMATION {
         cata_path path;
 
         // the steam workshop id for the mod. in-repo mods should have a value of 0. unuploaded mods should be left blank.
-        cata::optional<uint64_t> steam_id = cata::nullopt;
+        std::optional<uint64_t> steam_id = std::nullopt;
         /** All authors who have added content to the mod (excluding maintenance changes) */
         std::set<std::string> authors;
 

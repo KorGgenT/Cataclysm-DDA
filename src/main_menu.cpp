@@ -361,7 +361,7 @@ void main_menu::print_menu( const catacurses::window &w_open, int iSel, const po
     }
 
     iLine++;
-    center_print( w_open, iLine, c_light_blue, string_format( _( "Version: 0.I (Ito) Stable Release" ),
+    center_print( w_open, iLine, c_light_blue, string_format( _( "Version: 0.I (Ito) Stable Release STEAM" ),
                   getVersionString() ) );
 
     int menu_length = 0;
