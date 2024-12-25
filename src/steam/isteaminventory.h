@@ -354,9 +354,7 @@ class ISteamInventory
                                                  List of prices for the given item defs ) uint64 *pCurrentPrices,
                                          STEAM_ARRAY_COUNT( unArrayLength ) STEAM_OUT_ARRAY_COUNT( pPrices,
                                                  List of prices for the given item defs ) uint64 *pBasePrices,
-                                             uint32 unArrayLength ) {
-                    = 0;
-            }
+                                             uint32 unArrayLength ) = 0;
 
         // Retrieves the price for the item definition id
         // Returns false if there is no price stored for the item definition.
