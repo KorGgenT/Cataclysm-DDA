@@ -158,7 +158,7 @@ inline const char *servernetadr_t::ToString( uint32 unIP, uint16 usPort ) const
     _snprintf( s[nBuf], sizeof( s[nBuf] ), "%u.%u.%u.%u:%i", ( int )( ipByte[0] ), ( int )( ipByte[1] ),
                ( int )( ipByte[2] ), ( int )( ipByte[3] ), usPort );
 #else
-    _snprintf( s[nBuf], sizeof( s[nBuf] ), "%u.%u.%u.%u:%i", ( int )( ipByte[3] ), ( int )( ipByte[2] ),
+    _snprintf( s[nBuf], sizeof( s[nBuf] ), "%i.%i.%i.%i:%i", ( int )( ipByte[3] ), ( int )( ipByte[2] ),
                ( int )( ipByte[1] ), ( int )( ipByte[0] ), usPort );
 #endif
     const char *pchRet = s[nBuf];
