@@ -6,7 +6,7 @@
 #include "debug.h"
 #include "mod_manager.h"
 #include "popup.h"
-#include "ui.h"
+#include "uilist.h"
 
 using mod_id = string_id<MOD_INFORMATION>;
 
