@@ -339,3 +339,8 @@ void CSteamAchievements::notify( const cata::event &e )
     m_pSteamUserStats->StoreStats();
     SteamInput()->RunFrame();
 }
+
+void CSteamAchievements::notify( const cata::event &, std::unique_ptr<talker>, std::unique_ptr<talker> )
+{
+    return;
+}
