@@ -27,7 +27,7 @@ static std::string get_mod_path( const mod_id mod )
     const std::string f( buffer );
     const std::string p( f.substr( 0, f.find_last_of( "\\/" ) ) );
 
-    const std::string path( mod->path.get_unrelative_path().c_str() );
+    const std::string path( mod->path.get_unrelative_path().string() );
     return string_format( "%s%c%s", p, std::filesystem::path::preferred_separator, path );
 }
 

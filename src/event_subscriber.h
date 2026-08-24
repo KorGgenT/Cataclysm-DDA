@@ -4,12 +4,13 @@
 
 #include <memory>
 
+#include "talker.h"
+
 namespace cata
 {
 class event;
 }  // namespace cata
 class event_bus;
-class talker;
 
 class event_subscriber
 {
