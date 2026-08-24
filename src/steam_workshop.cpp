@@ -1,6 +1,10 @@
 #include "steam_workshop.h"
 
 #include <optional>
+#ifdef __linux__
+#include <limits.h>
+#define MAX_PATH PATH_MAX
+#endif
 
 #include "achievement_steam.h"
 #include "debug.h"
@@ -19,13 +23,12 @@ const AppId_t dda_app_id( APP_ID );
 static std::string get_mod_path( const mod_id mod )
 {
     char buffer[MAX_PATH];
-    GetModuleFileName( NULL, buffer, MAX_PATH );
+    //GetModuleFileName( NULL, buffer, MAX_PATH );
     const std::string f( buffer );
     const std::string p( f.substr( 0, f.find_last_of( "\\/" ) ) );
 
-    const std::wstring w_path = mod->path.get_unrelative_path().c_str();
-    const std::string path( w_path.begin(), w_path.end() );
-    return string_format( "%s\\\%s", p, path );
+    const std::string path( mod->path.get_unrelative_path().c_str() );
+    return string_format( "%s%c%s", p, std::filesystem::path::preferred_separator, path );
 }
 
 void load_workshop_legal_agreement()
@@ -57,7 +60,7 @@ static std::optional<mod_id> pick_mod()
     return *mod_iter;
 }
 
-void steam_workshop_update( const mod_id &mod, const std::string path )
+static void steam_workshop_update( const mod_id &mod, const std::string path )
 {
     UGCUpdateHandle_t handle = SteamUGC()->StartItemUpdate( APP_ID, *mod->steam_id );
     SteamUGC()->SetItemContent( handle, path.c_str() );
@@ -84,7 +87,7 @@ void steam_workshop_upload()
         return;
     }
 
-    ISteamUser *user = SteamUser();
+    SteamUser();
     dda_call_result_listener upload_me;
     upload_me.create_item();
     SteamAPI_RunCallbacks();

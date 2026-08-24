@@ -5,9 +5,15 @@
 #include <string>
 
 #include "path_info.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma GCC diagnostic ignored "-Wsuggest-override"
 #include "steam/steam_api.h"
 #include "steam/isteamfriends.h"
 #include "steam/isteamugc.h"
+#pragma GCC diagnostic pop
 
 #define MAX_WORKSHOP_ITEMS 16
 

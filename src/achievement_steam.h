@@ -105,6 +105,7 @@ class CSteamAchievements : public event_subscriber
 
         // acumulator using event bus
         void notify( const cata::event &e ) override;
+        void notify( const cata::event &, std::unique_ptr<talker>, std::unique_ptr<talker> ) override;
     private:
         void EvaluateAchievement( Achievement_t &achieve );
         void UnlockAchievement( Achievement_t &achieve );
