@@ -106,6 +106,7 @@ class item_location::impl
         class item_on_map;
         class item_on_person;
         class item_on_vehicle;
+        class item_in_inventory;
         class nowhere;
 
         impl() = default;
@@ -908,6 +909,135 @@ class item_location::impl::item_in_container : public item_location::impl
         }
 };
 
+class item_location::impl::item_in_inventory : public item_location::impl
+{
+    private:
+        inventory *container;
+        Character *holder; // if this is a character attached inventory or not
+
+    public:
+        item_in_inventory( inventory *inv, Character *whose, item *which ) : impl( which ),
+            container( inv ), holder( whose ) {}
+        item_in_inventory( inventory *inv, Character *whose, int idx, int64_t uid ) : impl( idx, uid ),
+            container( inv ), holder( whose ) {}
+
+        void serialize( JsonOut &js ) const override {
+            if( !target() ) {
+                item_location::nowhere.serialize( js );
+                return;
+            }
+            js.start_object();
+            js.member( "type", "inventory" );
+            js.member( "holder", holder );
+            js.member( "inv", container );
+        }
+
+        type where() const override {
+            return type::inventory;
+        }
+
+        Character *carrier() const override {
+            return holder;
+        }
+
+        item_location obtain( Character &ch, int qty ) override {
+            ch.mod_moves( -obtain_cost( ch, qty ) );
+
+            on_contents_changed();
+            item obj = target()->split( qty );
+
+            const auto get_local_location = []( inventory * inv, Character & ch, item_location it ) {
+                if( inv->has_item( *it ) ) {
+                    return item_location( inv, &ch, &*it );
+                } else {
+                    return item_location{};
+                }
+            };
+
+
+            if( !obj.is_null() ) {
+                return get_local_location( container, ch, ch.i_add( obj, should_stack ) );
+            } else {
+                item_location inv = ch.i_add( *target(), should_stack, nullptr, target() );
+                remove_item();
+                return get_local_location( container, ch, inv );
+            }
+        }
+
+        int obtain_cost( const Character &ch, int qty ) const override {
+            if( !target() ) {
+                return 0;
+            }
+            if( !holder ) {
+                return 100;
+            } else {
+
+                if( !target() ) {
+                    return 0;
+                }
+
+                int mv = 0;
+                item *obj = target();
+                if( holder->is_wielding( *obj ) ) {
+                    mv = holder->item_handling_cost( *obj, false, 0, qty );
+                } else {
+                    // then we are wearing it
+                    mv = holder->item_handling_cost( *obj, true, INVENTORY_HANDLING_PENALTY / 2, qty );
+                    mv += 250;
+                }
+
+                if( &ch != holder ) {
+                    // TODO: implement movement cost for transferring item between characters
+                }
+
+                return mv;
+            }
+        }
+
+        item *unpack( int idx ) const override {
+            return const_cast<item *>( &container->find_item( idx ) );
+        }
+
+        void remove_item() override {
+            container->remove_item( target() );
+        }
+
+        tripoint_bub_ms pos_bub( const map &here ) const override {
+            if( holder ) {
+                return holder->pos_bub( here );
+            } else {
+                return tripoint_bub_ms::zero;
+            }
+        }
+
+        tripoint_abs_ms pos_abs() const override {
+            if( holder ) {
+                return holder->pos_abs();
+            } else {
+                return tripoint_abs_ms::zero;
+            }
+        }
+
+        std::string describe( const Character * ) const override {
+            return _( "inventory_location" );
+        }
+
+        // inventories are special and don't really have a capacity.
+        units::volume volume_capacity() const override {
+            return 0_ml;
+        }
+
+        units::mass weight_capacity() const override {
+            return 0_gram;
+        }
+
+        bool check_parent_capacity_recursive() const override {
+            return true;
+        }
+
+        void on_contents_changed() {}
+};
+
 const item_location item_location::nowhere;
 
 item_location::item_location()
@@ -924,6 +1054,9 @@ item_location::item_location( const vehicle_cursor &vc, item *which )
 
 item_location::item_location( const item_location &container, item *which )
     : ptr( new impl::item_in_container( container, which ) ) {}
+
+item_location::item_location( inventory *inv, Character *whose, item *which )
+    : ptr( new impl::item_in_inventory( inv, whose, which ) ) {}
 
 bool item_location::operator==( const item_location &rhs ) const
 {
@@ -1045,6 +1178,16 @@ void item_location::deserialize( const JsonObject &obj )
             debugmsg( "contents index greater than contents size" );
             ptr = std::make_shared<impl::nowhere>();
         }
+    } else if( type == "inventory" ) {
+        character_id id;
+        Character *holder;
+        inventory *inv;
+        obj.read( "holder", id );
+        if (id.is_valid()) {
+            
+        }
+        obj.read( "inv", inv );
+        ptr = std::make_shared<impl::item_in_inventory>( inv, holder, uid );
     }
 }
 

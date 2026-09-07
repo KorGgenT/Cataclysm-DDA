@@ -24,6 +24,7 @@ class map;
 class map_cursor;
 class talker;
 class vehicle_cursor;
+class inventory;
 template<typename T> class ret_val;
 
 /**
@@ -40,7 +41,8 @@ class item_location
             character = 1,
             map = 2,
             vehicle = 3,
-            container = 4
+            container = 4,
+            inventory = 5
         };
 
         item_location();
@@ -51,6 +53,7 @@ class item_location
         item_location( const map_cursor &mc, item *which );
         item_location( const vehicle_cursor &vc, item *which );
         item_location( const item_location &container, item *which );
+        item_location( inventory *inv, Character *whose, item *which );
 
         void serialize( JsonOut &js ) const;
         void deserialize( const JsonObject &obj );
