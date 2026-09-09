@@ -922,14 +922,7 @@ class item_location::impl::item_in_inventory : public item_location::impl
             container( inv ), holder( whose ) {}
 
         void serialize( JsonOut &js ) const override {
-            if( !target() ) {
-                item_location::nowhere.serialize( js );
-                return;
-            }
-            js.start_object();
-            js.member( "type", "inventory" );
-            js.member( "holder", holder );
-            js.member( "inv", container );
+            debugmsg( "tried to serialize inventory type item_location." );
         }
 
         type where() const override {
@@ -1179,15 +1172,7 @@ void item_location::deserialize( const JsonObject &obj )
             ptr = std::make_shared<impl::nowhere>();
         }
     } else if( type == "inventory" ) {
-        character_id id;
-        Character *holder;
-        inventory *inv;
-        obj.read( "holder", id );
-        if (id.is_valid()) {
-            
-        }
-        obj.read( "inv", inv );
-        ptr = std::make_shared<impl::item_in_inventory>( inv, holder, uid );
+        debugmsg( "tried to deserialize inventory type item_location" );
     }
 }
 
