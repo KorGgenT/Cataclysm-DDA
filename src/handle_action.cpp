@@ -867,6 +867,41 @@ static void haul_toggle()
     get_avatar().toggle_hauling();
 }
 
+void avatar_action::eat_some( avatar &you )
+{
+    std::list<item_location> food_list;
+    you.visit_items( [&you, &food_list]( const item_location & food ) {
+        if( you.will_eat( *food ).success() ) {
+            food_list.push_back( food );
+        }
+        return VisitResponse::NEXT;
+    } );
+
+    if( food_list.empty() ) {
+        popup( _( "You don't have anything you want to eat." ) );
+        return;
+    }
+
+    // sort by calories
+    food_list.sort( [&you]( const item_location & a, const item_location & b ) {
+        return you.compute_effective_nutrients( *a ).kcal() > you.compute_effective_nutrients( *b ).kcal();
+    } );
+
+    std::list<item_location> food_to_eat;
+    int cal_count = 0;
+    // placeholder for adding settings
+    const int cal_meal = 1000;
+    for( const item_location &food : food_list ) {
+        if( cal_count < cal_meal ) {
+            cal_count += you.compute_effective_nutrients( *food ).kcal();
+            player_activity act_eat = player_activity( consume_activity_actor( food ) );
+            you.backlog.push_back( act_eat );
+        }
+    }
+
+    you.assign_backlog_activity();
+}
+
 static void smash( const std::optional<tripoint_bub_ms> &p = std::nullopt )
 {
     const bool allow_floor_bash = debug_mode; // Should later become "true"
@@ -2662,6 +2697,10 @@ bool game::do_regular_action( action_id &act, avatar &player_character,
 
         case ACTION_TAKE_OFF:
             takeoff();
+            break;
+
+        case ACTION_EAT_SOME:
+            avatar_action::eat_some( player_character );
             break;
 
         case ACTION_EAT:

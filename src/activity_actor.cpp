@@ -6132,7 +6132,7 @@ void consume_activity_actor::start( player_activity &act, Character &guy )
     act.moves_left = moves;
 }
 
-void consume_activity_actor::finish( player_activity &act, Character & )
+void consume_activity_actor::finish( player_activity &act, Character &guy )
 {
     // Prevent interruptions from this point onwards, so that e.g. pain from
     // injecting serum doesn't pop up messages about cancelling consuming (it's
@@ -6170,6 +6170,10 @@ void consume_activity_actor::finish( player_activity &act, Character & )
             avatar_action::eat_or_use( get_avatar(),
                                        game_menus::inv::consume( uistate.consume_uistate.consume_menu_comestype ) );
         };
+    }
+
+    if( !guy.backlog.empty() && guy.backlog.front().id() == ACT_CONSUME ) {
+        guy.assign_backlog_activity();
     }
 }
 

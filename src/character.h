@@ -3159,6 +3159,8 @@ class Character : public Creature, public visitable
         /** Check if character has a given sub_bodypart */
         bool has_sub_bodypart( const sub_bodypart_id &sbp ) const;
         void resume_backlog_activity();
+        // this assigns the backlog activity. the backlog is a "queue" for this use case
+        void assign_backlog_activity();
         void cancel_activity();
         void cancel_stashed_activity();
         player_activity get_stashed_activity() const;
