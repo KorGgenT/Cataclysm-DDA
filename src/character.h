@@ -4277,8 +4277,6 @@ class Character : public Creature, public visitable
          */
         mutable pimpl<pathfinding_settings> path_settings;
 
-        mutable auto_eat_settings auto_eat_handler;
-
         // faction API versions
         // 2 - allies are in your_followers faction; NPCATT_FOLLOW is follower but not an ally
         // 0 - allies may be in your_followers faction; NPCATT_FOLLOW is an ally (legacy)

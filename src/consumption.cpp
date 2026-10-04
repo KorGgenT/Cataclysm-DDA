@@ -1139,6 +1139,25 @@ ret_val<edible_rating> Character::will_eat( const item &food, bool interactive )
     return ret_val<edible_rating>::make_success();
 }
 
+ret_val<edible_rating> avatar::will_auto_eat( const item &it ) const
+{
+    ret_val<edible_rating> ret = Character::will_auto_eat( it );
+    if( !auto_eat_handler.will_eat( *this, it ) ) {
+        return ret_val<edible_rating>::make_failure( edible_rating::NO_AUTO_EAT );
+    }
+    return ret;
+}
+
+ret_val<edible_rating> npc::will_auto_eat( const item &it ) const
+{
+    ret_val<edible_rating> ret = Character::will_auto_eat( it );
+    // npcs *always* use the default auto eat settings.
+    if( !auto_eat_settings().will_eat( *this, it ) ) {
+        return ret_val<edible_rating>::make_failure( edible_rating::NO_AUTO_EAT );
+    }
+    return ret;
+}
+
 ret_val<edible_rating> Character::will_auto_eat( const item &it ) const
 {
 
@@ -1160,9 +1179,6 @@ ret_val<edible_rating> Character::will_auto_eat( const item &it ) const
     if( it.get_comestible()->addictions.count( addiction_alcohol ) &&
         !has_addiction( addiction_alcohol ) ) {
         return ret_val<edible_rating>::make_failure( edible_rating::ADDICTIVE );
-    }
-    if( !auto_eat_handler.will_eat( *this, it ) ) {
-        return ret_val<edible_rating>::make_failure( edible_rating::NO_AUTO_EAT );
     }
     return ret;
 }

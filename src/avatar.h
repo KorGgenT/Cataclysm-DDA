@@ -445,7 +445,9 @@ class avatar : public Character
         const mood_face_id &character_mood_face( bool clear_cache = false ) const;
 
         bool is_waiting_to_change_mode_mode();
+        ret_val<edible_rating> will_auto_eat( const item &it ) const;
 
+        mutable auto_eat_settings auto_eat_handler;
     private:
         std::map<char, itype_id> assigned_invlet;
         invlet_favorites invlet_cache;
