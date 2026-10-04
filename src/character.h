@@ -317,7 +317,10 @@ class auto_eat_settings
         int min_fun = -5;
         // will drink past necessary quench values to eat calories
         bool over_quench = true;
+        // the amount of kcal a "meal" consists of when eating multiple items
+        int meal_size = 1000;
     public:
+        int get_meal_size() const { return meal_size; }
         // compare food against settings which are mutable for player
         // does not consider anything out of Character::will_eat
         bool will_eat( const Character &guy, const item &food ) const;

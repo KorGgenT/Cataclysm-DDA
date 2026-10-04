@@ -888,7 +888,7 @@ void avatar_action::eat_some( avatar &you )
 
     int cal_count = 0;
     // placeholder for adding settings
-    const int cal_meal = 1000;
+    const int cal_meal = you.auto_eat_handler.get_meal_size();
     for( const item_location &food : food_list ) {
         if( cal_count < cal_meal ) {
             cal_count += you.compute_effective_nutrients( *food ).kcal();
