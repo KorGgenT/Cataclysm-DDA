@@ -4439,45 +4439,7 @@ int get_auto_consume_moves( Character &you, const bool food )
         }
 
         const auto visit = [&]( item_location & it ) {
-            if( !you.can_consume_as_is( *it ) ) {
-                return VisitResponse::NEXT;
-            }
-            if( it->has_flag( json_flag_NO_AUTO_CONSUME ) ) {
-                // ignored due to NO_AUTO_CONSUME flag
-                return VisitResponse::NEXT;
-            }
-            if( it->is_null() || it->is_craft() || !it->is_food() ||
-                you.fun_for( *it ).first < -5 ) {
-                // not good eatings.
-                return VisitResponse::NEXT;
-            }
-            if( food && you.compute_effective_nutrients( *it ).kcal() < 50 ) {
-                // not filling enough
-                return VisitResponse::NEXT;
-            }
-            if( !you.will_eat( *it, false ).success() ) {
-                // wont like it, cannibal meat etc
-                return VisitResponse::NEXT;
-            }
-            if( !it->is_owned_by( you, true ) ) {
-                // it aint ours.
-                return VisitResponse::NEXT;
-            }
-            if( !food && it->get_comestible()->quench < 15 ) {
-                // not quenching enough
-                return VisitResponse::NEXT;
-            }
-            if( !food && it->is_watertight_container() && it->made_of( phase_id::SOLID ) ) {
-                // it's frozen
-                return VisitResponse::NEXT;
-            }
-            const use_function *usef = it->type->get_use( "BLECH_BECAUSE_UNCLEAN" );
-            if( usef ) {
-                // it's unclean
-                return VisitResponse::NEXT;
-            }
-            if( it->get_comestible()->addictions.count( addiction_alcohol ) &&
-                !you.has_addiction( addiction_alcohol ) ) {
+            if( !you.will_auto_eat( *it ) ) {
                 return VisitResponse::NEXT;
             }
 

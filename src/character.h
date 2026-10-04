@@ -297,7 +297,30 @@ enum edible_rating {
     /// We can eat this, but we'll suffer from overeat
     TOO_FULL,
     /// Some weird stuff that requires a tool we don't have
-    NO_TOOL
+    NO_TOOL,
+    /// you don't own the item. should only be a failure for auto eat
+    NOT_OWNED,
+    /// will not eat unless player directed
+    NO_AUTO_EAT,
+    /// will not eat unless addicted
+    ADDICTIVE,
+};
+
+class auto_eat_settings
+{
+    private:
+        // the minimum kcal value to consider an item food
+        int min_kcal_for_food = 50;
+        // the minimum quench value for a drink
+        int min_quench = 15;
+        // minimum fun value for consumption
+        int min_fun = -5;
+        // will drink past necessary quench values to eat calories
+        bool over_quench = true;
+    public:
+        // compare food against settings which are mutable for player
+        // does not consider anything out of Character::will_eat
+        bool will_eat( const Character &guy, const item &food ) const;
 };
 
 enum crush_tool_type {
@@ -3541,6 +3564,7 @@ class Character : public Creature, public visitable
          * Asks about them if @param interactive is true, refuses otherwise.
          */
         ret_val<edible_rating> will_eat( const item &food, bool interactive = false ) const;
+        ret_val<edible_rating> will_auto_eat( const item &food ) const;
         /** Determine character's capability of recharging their CBMs.
         * Returns energy in kJ
         */
@@ -4252,6 +4276,8 @@ class Character : public Creature, public visitable
          * Most of it isn't changed too often, hence mutable.
          */
         mutable pimpl<pathfinding_settings> path_settings;
+
+        mutable auto_eat_settings auto_eat_handler;
 
         // faction API versions
         // 2 - allies are in your_followers faction; NPCATT_FOLLOW is follower but not an ally

@@ -75,6 +75,7 @@
 static const std::string comesttype_DRINK( "DRINK" );
 static const std::string comesttype_FOOD( "FOOD" );
 
+static const addiction_id addiction_alcohol( "alcohol" );
 static const addiction_id addiction_amphetamine( "amphetamine" );
 static const addiction_id addiction_caffeine( "caffeine" );
 static const addiction_id addiction_cocaine( "cocaine" );
@@ -115,6 +116,7 @@ static const flag_id json_flag_ALLERGEN_MEAT( "ALLERGEN_MEAT" );
 static const flag_id json_flag_ALLERGEN_MILK( "ALLERGEN_MILK" );
 static const flag_id json_flag_ANIMAL_PRODUCT( "ANIMAL_PRODUCT" );
 static const flag_id json_flag_MARLOSS( "MARLOSS" );
+static const flag_id json_flag_NO_AUTO_CONSUME( "NO_AUTO_CONSUME" );
 
 static const item_category_id item_category_chems( "chems" );
 
@@ -849,7 +851,7 @@ morale_type Character::allergy_type( const item &food ) const
 
 ret_val<edible_rating> Character::can_eat( const item &food ) const
 {
-    if( !food.is_comestible() ) {
+    if( !can_consume_as_is( food ) ) {
         return ret_val<edible_rating>::make_failure( _( "That doesn't look edible." ) );
     }
 
@@ -1135,6 +1137,55 @@ ret_val<edible_rating> Character::will_eat( const item &food, bool interactive )
     }
     // All checks ended, it's edible (or we're pretending it is)
     return ret_val<edible_rating>::make_success();
+}
+
+ret_val<edible_rating> Character::will_auto_eat( const item &it ) const
+{
+
+    ret_val<edible_rating> ret = will_eat( it, false );
+    if( !ret.success() ) {
+        return ret;
+    }
+    if( !it.is_food() || it.has_flag( json_flag_NO_AUTO_CONSUME ) ) {
+        return ret_val<edible_rating>::make_failure( edible_rating::NO_AUTO_EAT );
+    }
+    if( !it.is_owned_by( *this, false ) ) {
+        // it aint ours.
+        return ret_val<edible_rating>::make_failure( edible_rating::NOT_OWNED );
+    }
+    const use_function *usef = it.type->get_use( "BLECH_BECAUSE_UNCLEAN" );
+    if( usef ) {
+        return ret_val<edible_rating>::make_failure( edible_rating::ROTTEN );
+    }
+    if( it.get_comestible()->addictions.count( addiction_alcohol ) &&
+        !has_addiction( addiction_alcohol ) ) {
+        return ret_val<edible_rating>::make_failure( edible_rating::ADDICTIVE );
+    }
+    if( !auto_eat_handler.will_eat( *this, it ) ) {
+        return ret_val<edible_rating>::make_failure( edible_rating::NO_AUTO_EAT );
+    }
+    return ret;
+}
+
+bool auto_eat_settings::will_eat( const Character &guy, const item &it ) const
+{
+
+    if( guy.fun_for( it ).first < min_fun ) {
+        // not good eatings.
+        return false;
+    }
+
+    const bool is_food = it.get_comestible()->comesttype == "FOOD";
+
+    if( is_food && guy.compute_effective_nutrients( it ).kcal() < min_kcal_for_food ) {
+        // not filling enough
+        return false;
+    }
+    if( !is_food && it.get_comestible()->quench < min_quench ) {
+        // not quenching enough
+        return false;
+    }
+    return true;
 }
 
 static constexpr time_duration alc_strength( const int strength, const time_duration &weak,
@@ -1884,6 +1935,9 @@ bool Character::can_estimate_rot() const
 
 bool Character::can_consume_as_is( const item &it ) const
 {
+    if( it.is_craft() ) {
+        return false;
+    }
     if( it.is_comestible() ) {
         return !it.has_flag( flag_FROZEN ) || it.has_flag( flag_EDIBLE_FROZEN ) ||
                it.has_flag( flag_MELTS );
