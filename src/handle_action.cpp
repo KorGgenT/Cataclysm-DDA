@@ -886,7 +886,6 @@ void avatar_action::eat_some( avatar &you )
         you.auto_eat_handler.comestible_sort_compare( you, a, b );
     } );
 
-    std::list<item_location> food_to_eat;
     int cal_count = 0;
     // placeholder for adding settings
     const int cal_meal = 1000;
