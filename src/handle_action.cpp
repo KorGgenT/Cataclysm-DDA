@@ -883,7 +883,7 @@ void avatar_action::eat_some( avatar &you )
     }
 
     food_list.sort( [&you]( const item_location & a, const item_location & b ) {
-        you.auto_eat_handler.comestible_sort_compare( you, a, b );
+        return you.auto_eat_handler.comestible_sort_compare( you, a, b );
     } );
 
     int cal_count = 0;
