@@ -4405,7 +4405,7 @@ static bool comestible_sort_compare( Character &you, const item_location &lhs,
     if( you.is_avatar() ) {
         rating = you.as_avatar()->auto_eat_handler;
     }
-    rating.comestible_sort_compare( you, lhs, rhs );
+    return rating.comestible_sort_compare( you, lhs, rhs );
 }
 
 bool auto_eat_settings::comestible_sort_compare( Character &you, const item_location &lhs,
