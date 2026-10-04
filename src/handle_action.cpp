@@ -882,9 +882,8 @@ void avatar_action::eat_some( avatar &you )
         return;
     }
 
-    // sort by calories
     food_list.sort( [&you]( const item_location & a, const item_location & b ) {
-        return you.compute_effective_nutrients( *a ).kcal() > you.compute_effective_nutrients( *b ).kcal();
+        you.auto_eat_handler.comestible_sort_compare( you, a, b );
     } );
 
     std::list<item_location> food_to_eat;
