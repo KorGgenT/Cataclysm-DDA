@@ -321,6 +321,9 @@ class auto_eat_settings
         // compare food against settings which are mutable for player
         // does not consider anything out of Character::will_eat
         bool will_eat( const Character &guy, const item &food ) const;
+        // which item is better? considers settings.
+        bool comestible_sort_compare( Character &you, const item_location &lhs,
+                                      const item_location &rhs ) const;
 };
 
 enum crush_tool_type {

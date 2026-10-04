@@ -4401,6 +4401,16 @@ static time_duration get_comestible_time_left( const item_location &loc )
 static bool comestible_sort_compare( Character &you, const item_location &lhs,
                                      const item_location &rhs )
 {
+    auto_eat_settings rating;
+    if( you.is_avatar() ) {
+        rating = you.as_avatar()->auto_eat_handler;
+    }
+    rating.comestible_sort_compare( you, lhs, rhs );
+}
+
+bool auto_eat_settings::comestible_sort_compare( Character &you, const item_location &lhs,
+        const item_location &rhs ) const
+{
     time_duration time_a = get_comestible_time_left( lhs );
     time_duration time_b = get_comestible_time_left( rhs );
     int order_a = get_comestible_order( you, lhs, time_a );
@@ -4439,7 +4449,12 @@ int get_auto_consume_moves( Character &you, const bool food )
         }
 
         const auto visit = [&]( item_location & it ) {
-            if( !you.will_auto_eat( *it ) ) {
+            ret_val<edible_rating> retval = you.will_auto_eat( *it );
+            if( retval.value() == edible_rating::NOT_OWNED ) {
+                // if you don't own the container you don't own the contents
+                // so don't bother iterating on them
+                return VisitResponse::SKIP;
+            } else if( !retval.success() ) {
                 return VisitResponse::NEXT;
             }
 
