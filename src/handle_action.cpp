@@ -870,7 +870,7 @@ static void haul_toggle()
 void avatar_action::eat_some( avatar &you )
 {
     std::list<item_location> food_list;
-    you.visit_items( [&you, &food_list]( const item_location & food ) {
+    you.crafting_inventory().visit_items([&you, &food_list](const item_location &food) {
         if( you.will_eat( *food ).success() ) {
             food_list.push_back( food );
         }
