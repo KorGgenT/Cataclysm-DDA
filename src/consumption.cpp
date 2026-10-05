@@ -1183,27 +1183,6 @@ ret_val<edible_rating> Character::will_auto_eat( const item &it ) const
     return ret;
 }
 
-bool auto_eat_settings::will_eat( const Character &guy, const item &it ) const
-{
-
-    if( guy.fun_for( it ).first < min_fun ) {
-        // not good eatings.
-        return false;
-    }
-
-    const bool is_food = it.get_comestible()->comesttype == "FOOD";
-
-    if( is_food && guy.compute_effective_nutrients( it ).kcal() < min_kcal_for_food ) {
-        // not filling enough
-        return false;
-    }
-    if( !is_food && it.get_comestible()->quench < min_quench ) {
-        // not quenching enough
-        return false;
-    }
-    return true;
-}
-
 static constexpr time_duration alc_strength( const int strength, const time_duration &weak,
         const time_duration &medium, const time_duration &strong )
 {

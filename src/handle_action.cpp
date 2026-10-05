@@ -81,6 +81,7 @@
 #include "point.h"
 #include "popup.h"
 #include "ranged.h"
+#include "recipe_dictionary.h"
 #include "rng.h"
 #include "safemode_ui.h"
 #if defined(TILES)
@@ -869,31 +870,54 @@ static void haul_toggle()
 
 void avatar_action::eat_some( avatar &you )
 {
-    std::list<item_location> food_list;
-    you.crafting_inventory().visit_items([&you, &food_list](const item_location &food) {
+    std::list<std::pair<item_location, const recipe *>> food_list;
+    temp_crafting_inventory inv = you.crafting_inventory();
+    inv.visit_items( [&you, &food_list]( const item_location & food ) {
         if( you.will_eat( *food ).success() ) {
-            food_list.push_back( food );
+            food_list.push_back( std::make_pair( food, nullptr ) );
         }
         return VisitResponse::NEXT;
     } );
+
+    recipe_subset &recipes = you.get_group_available_recipes( &inv );
+    for( const recipe *rec : recipes ) {
+        item res( rec->result() );
+        res.set_owner( you );
+        if( res.is_food() && you.will_auto_eat( res ).success() &&
+            you.can_start_craft( rec, recipe_filter_flags{ recipe_filter_flags::no_rotten } ) ) {
+            std::vector<item> recipe_results = rec->create_results();
+            // we're gonna skip multi results as too complicated for this algorithm for now.
+            if( recipe_results.size() == 1 && !recipe_results.front().is_null() ) {
+                item_location loc( inv, &inv.add_item_copy( recipe_results.front() ) );
+                food_list.push_back( std::make_pair( loc, rec ) );
+            }
+        }
+    }
+
 
     if( food_list.empty() ) {
         popup( _( "You don't have anything you want to eat." ) );
         return;
     }
 
-    food_list.sort( [&you]( const item_location & a, const item_location & b ) {
-        return you.auto_eat_handler.comestible_sort_compare( you, a, b );
+    food_list.sort( [&you]( const std::pair<item_location, const recipe *> &a,
+    const std::pair<item_location, const recipe *> &b ) {
+        return you.auto_eat_handler.comestible_sort_compare( you, a.first, b.first );
     } );
 
     int cal_count = 0;
     // placeholder for adding settings
     const int cal_meal = you.auto_eat_handler.get_meal_size();
-    for( const item_location &food : food_list ) {
+    for( auto &food : food_list ) {
         if( cal_count < cal_meal ) {
-            cal_count += you.compute_effective_nutrients( *food ).kcal();
-            player_activity act_eat = player_activity( consume_activity_actor( food ) );
-            you.backlog.push_back( act_eat );
+            cal_count += you.compute_effective_nutrients( *food.first ).kcal();
+            if( !food.second ) {
+                player_activity act_eat = player_activity( consume_activity_actor( food.first ) );
+                you.backlog.push_back( act_eat );
+            } else {
+                craft_command cmd( food.second, 1, false, &you, std::nullopt );
+                cmd.execute();
+            }
         }
     }
 
