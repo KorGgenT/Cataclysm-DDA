@@ -870,7 +870,7 @@ static void haul_toggle()
 
 void avatar_action::eat_some( avatar &you )
 {
-    std::list<std::pair<item_location, const recipe *>> food_list;
+    std::list<item_craft_pair> food_list;
     temp_crafting_inventory inv = you.crafting_inventory();
     inv.visit_items( [&you, &food_list]( const item_location & food ) {
         if( you.will_eat( *food ).success() ) {
@@ -900,15 +900,14 @@ void avatar_action::eat_some( avatar &you )
         return;
     }
 
-    food_list.sort( [&you]( const std::pair<item_location, const recipe *> &a,
-    const std::pair<item_location, const recipe *> &b ) {
-        return you.auto_eat_handler.comestible_sort_compare( you, a.first, b.first );
+    food_list.sort( [&you]( const item_craft_pair & a, const item_craft_pair & b ) {
+        return you.auto_eat_handler.comestible_sort_compare( you, a, b );
     } );
 
     int cal_count = 0;
     // placeholder for adding settings
     const int cal_meal = you.auto_eat_handler.get_meal_size();
-    for( auto &food : food_list ) {
+    for( const item_craft_pair &food : food_list ) {
         if( cal_count < cal_meal ) {
             cal_count += you.compute_effective_nutrients( *food.first ).kcal();
             if( !food.second ) {

@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 
+#include "auto_eat.h"
 #include "bodypart.h"
 #include "calendar.h"
 #include "character.h"

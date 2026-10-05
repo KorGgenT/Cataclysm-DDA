@@ -4359,23 +4359,21 @@ static VisitResponse visit_item_contents( item_location &loc,
     return VisitResponse::ABORT;
 }
 
-static int get_comestible_order( Character &you, const item_location &loc,
-                                 const time_duration &time )
+static bool comestible_sort_compare( Character &you, const item_craft_pair &lhs,
+                                     const item_craft_pair &rhs )
 {
-    if( loc->rotten() ) {
-        if( you.has_trait( trait_SAPROPHAGE ) || you.has_trait( trait_SAPROVORE ) ) {
-            return 1;
-        } else {
-            return 5;
-        }
-    } else if( time == 0_turns ) {
-        return 4;
-    } else if( loc.has_parent() &&
-               loc.parent_pocket()->spoil_multiplier() == 0.0f ) {
-        return 3;
-    } else {
-        return 2;
+    auto_eat_settings rating;
+    if( you.is_avatar() ) {
+        rating = you.as_avatar()->auto_eat_handler;
     }
+    return rating.comestible_sort_compare( you, lhs, rhs );
+}
+
+static bool comestible_sort_compare( Character &you, const item_location &lhs,
+                                     const item_location &rhs )
+{
+    return comestible_sort_compare( you, std::make_pair( lhs, nullptr ),
+                                    std::make_pair( rhs, nullptr ) );
 }
 
 int get_auto_consume_moves( Character &you, const bool food )
