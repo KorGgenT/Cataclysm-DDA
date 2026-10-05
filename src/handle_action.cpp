@@ -873,7 +873,7 @@ void avatar_action::eat_some( avatar &you )
     std::list<item_craft_pair> food_list;
     temp_crafting_inventory inv = you.crafting_inventory();
     inv.visit_items( [&you, &food_list]( const item_location & food ) {
-        if( you.will_eat( *food ).success() ) {
+        if( food->is_food() && you.will_auto_eat( *food ).success() ) {
             food_list.push_back( std::make_pair( food, nullptr ) );
         }
         return VisitResponse::NEXT;
@@ -894,7 +894,6 @@ void avatar_action::eat_some( avatar &you )
         }
     }
 
-
     if( food_list.empty() ) {
         popup( _( "You don't have anything you want to eat." ) );
         return;
@@ -903,6 +902,13 @@ void avatar_action::eat_some( avatar &you )
     food_list.sort( [&you]( const item_craft_pair & a, const item_craft_pair & b ) {
         return you.auto_eat_handler.comestible_sort_compare( you, a, b );
     } );
+
+    std::string pop;
+    for( const item_craft_pair &pair : food_list ) {
+        pop += string_format( "%i %s\n",
+                              you.auto_eat_handler.score_food( you, pair ), pair.first->tname() );
+    }
+    popup( pop );
 
     int cal_count = 0;
     // placeholder for adding settings

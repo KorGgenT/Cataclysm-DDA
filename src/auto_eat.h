@@ -34,6 +34,7 @@ class auto_eat_settings
 
         int score_food( const Character &guy, const item_location &food ) const;
     public:
+        int score_food( const Character &guy, const item_craft_pair &food ) const;
         int get_meal_size() const {
             return meal_size;
         }

@@ -110,6 +110,15 @@ int auto_eat_settings::score_food( const Character &guy, const item_location &fo
            joy_score( guy, *food );
 }
 
+int auto_eat_settings::score_food( const Character &guy, const item_craft_pair &food ) const
+{
+    int recipe_score;
+    if( food.second ) {
+        recipe_score = -30;
+    }
+    return recipe_score + score_food( guy, food.first );
+}
+
 bool auto_eat_settings::will_eat( const Character &guy, const item &it ) const
 {
     if( guy.fun_for( it ).first < min_fun ) {
@@ -133,16 +142,5 @@ bool auto_eat_settings::will_eat( const Character &guy, const item &it ) const
 bool auto_eat_settings::comestible_sort_compare( Character &you, const item_craft_pair &lhs,
         const item_craft_pair &rhs ) const
 {
-    int order_a = score_food( you, lhs.first );
-    // crafting costs some time and stuff
-    if( lhs.second ) {
-        order_a -= 30;
-    }
-
-    int order_b = score_food( you, rhs.first );
-    if( rhs.second ) {
-        order_b -= 30;
-    }
-
-    return order_a < order_b;
+    return score_food( you, lhs ) < score_food( you, rhs );
 }
