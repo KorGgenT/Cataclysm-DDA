@@ -1139,44 +1139,44 @@ ret_val<edible_rating> Character::will_eat( const item &food, bool interactive )
     return ret_val<edible_rating>::make_success();
 }
 
-ret_val<edible_rating> avatar::will_auto_eat( const item &it ) const
+ret_val<edible_rating> avatar::will_auto_eat( const item &food ) const
 {
-    ret_val<edible_rating> ret = Character::will_auto_eat( it );
-    if( !auto_eat_handler.will_eat( *this, it ) ) {
+    ret_val<edible_rating> ret = Character::will_auto_eat( food );
+    if( !auto_eat_handler.will_eat( *this, food ) ) {
         return ret_val<edible_rating>::make_failure( edible_rating::NO_AUTO_EAT );
     }
     return ret;
 }
 
-ret_val<edible_rating> npc::will_auto_eat( const item &it ) const
+ret_val<edible_rating> npc::will_auto_eat( const item &food ) const
 {
-    ret_val<edible_rating> ret = Character::will_auto_eat( it );
+    ret_val<edible_rating> ret = Character::will_auto_eat( food );
     // npcs *always* use the default auto eat settings.
-    if( !auto_eat_settings().will_eat( *this, it ) ) {
+    if( !auto_eat_settings().will_eat( *this, food ) ) {
         return ret_val<edible_rating>::make_failure( edible_rating::NO_AUTO_EAT );
     }
     return ret;
 }
 
-ret_val<edible_rating> Character::will_auto_eat( const item &it ) const
+ret_val<edible_rating> Character::will_auto_eat( const item &food ) const
 {
 
-    ret_val<edible_rating> ret = will_eat( it, false );
+    ret_val<edible_rating> ret = will_eat( food, false );
     if( !ret.success() ) {
         return ret;
     }
-    if( !it.is_food() || it.has_flag( json_flag_NO_AUTO_CONSUME ) ) {
+    if( !food.is_food() || food.has_flag( json_flag_NO_AUTO_CONSUME ) ) {
         return ret_val<edible_rating>::make_failure( edible_rating::NO_AUTO_EAT );
     }
-    if( !it.is_owned_by( *this, false ) ) {
+    if( !food.is_owned_by( *this, false ) ) {
         // it aint ours.
         return ret_val<edible_rating>::make_failure( edible_rating::NOT_OWNED );
     }
-    const use_function *usef = it.type->get_use( "BLECH_BECAUSE_UNCLEAN" );
+    const use_function *usef = food.type->get_use( "BLECH_BECAUSE_UNCLEAN" );
     if( usef ) {
         return ret_val<edible_rating>::make_failure( edible_rating::ROTTEN );
     }
-    if( it.get_comestible()->addictions.count( addiction_alcohol ) &&
+    if( food.get_comestible()->addictions.count( addiction_alcohol ) &&
         !has_addiction( addiction_alcohol ) ) {
         return ret_val<edible_rating>::make_failure( edible_rating::ADDICTIVE );
     }

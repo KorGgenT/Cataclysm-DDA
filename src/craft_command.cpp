@@ -42,9 +42,9 @@
 #include "visitable.h"
 #include "vpart_position.h"
 
-static const itype_id itype_candle( "candle" );
-
 static const flag_id json_flag_EAT_AFTER_CRAFT( "EAT_AFTER_CRAFT" );
+
+static const itype_id itype_candle( "candle" );
 
 static const trait_id trait_DEBUG_HS( "DEBUG_HS" );
 

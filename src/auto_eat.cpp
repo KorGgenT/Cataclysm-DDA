@@ -80,15 +80,12 @@ int auto_eat_settings::spoil_score( const Character &guy, const item_location &f
         }
     }
 
-    if( time_left > 4_weeks ) {
+    if( time_left > 4_weeks || time_left == 0_seconds ) {
         return 0;
     } else if( time_left > 1_weeks ) {
         return 5;
     } else if( time_left > 1_days ) {
         return 15;
-    } else if( time_left == 0_seconds ) {
-        // infinite shelf life
-        return 0;
     }
     // better get this in
     else if( time_left < 5_minutes ) {
@@ -202,7 +199,7 @@ std::list<item_craft_pair> auto_eat_settings::list_auto_eat_foods( const Charact
             return VisitResponse::SKIP;
         }
         if( food->is_food() && guy.will_auto_eat( *food ).success() ) {
-            food_list.push_back( std::make_pair( food, nullptr ) );
+            food_list.emplace_back( food, nullptr );
         }
         return VisitResponse::NEXT;
     };
@@ -277,7 +274,7 @@ void auto_eat_settings::load_available_crafting_recipes( std::list<item_craft_pa
             // we're gonna skip multi results as too complicated for this algorithm for now.
             if( recipe_results.size() == 1 && !recipe_results.front().is_null() ) {
                 item_location loc( inv, &inv.add_item_copy( recipe_results.front() ) );
-                food_list.push_back( std::make_pair( loc, rec ) );
+                food_list.emplace_back( loc, rec );
             }
         }
     }

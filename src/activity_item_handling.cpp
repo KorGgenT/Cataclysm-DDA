@@ -104,11 +104,8 @@ static const activity_id ACT_MULTIPLE_STUDY( "ACT_MULTIPLE_STUDY" );
 static const activity_id ACT_VEHICLE_DECONSTRUCTION( "ACT_VEHICLE_DECONSTRUCTION" );
 static const activity_id ACT_VEHICLE_REPAIR( "ACT_VEHICLE_REPAIR" );
 
-static const addiction_id addiction_alcohol( "alcohol" );
-
 static const flag_id json_flag_CUT_HARVEST( "CUT_HARVEST" );
 static const flag_id json_flag_MOP( "MOP" );
-static const flag_id json_flag_NO_AUTO_CONSUME( "NO_AUTO_CONSUME" );
 
 static const itype_id itype_battery( "battery" );
 static const itype_id itype_disassembly( "disassembly" );
@@ -139,9 +136,6 @@ static const requirement_id requirement_data_multi_fishing( "multi_fishing" );
 
 static const ter_str_id ter_t_stump( "t_stump" );
 static const ter_str_id ter_t_trunk( "t_trunk" );
-
-static const trait_id trait_SAPROPHAGE( "SAPROPHAGE" );
-static const trait_id trait_SAPROVORE( "SAPROVORE" );
 
 static const trap_str_id tr_firewood_source( "tr_firewood_source" );
 
