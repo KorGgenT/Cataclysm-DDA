@@ -1514,7 +1514,7 @@ class npc : public Character
         // same oracle functions the BT's score predicates use.
         float current_need_urgency( need_goal_id id ) const;
 
-        ret_val<edible_rating> will_auto_eat( const item &it ) const;
+        ret_val<edible_rating> will_auto_eat( const item &food ) const;
         // Execute the concrete action for a needs-category goal.
         // Owns target selection and progress tracking.
         need_result execute_need_goal( std::string_view goal );

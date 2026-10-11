@@ -158,21 +158,21 @@ int auto_eat_settings::score_food( const Character &guy, const item_craft_pair &
     return recipe_score + score_food( guy, food.first );
 }
 
-bool auto_eat_settings::will_eat( const Character &guy, const item &it ) const
+bool auto_eat_settings::will_eat( const Character &guy, const item &food ) const
 {
-    if( guy.fun_for( it ).first < min_fun ) {
+    if( guy.fun_for( food ).first < min_fun ) {
         // not good eatings.
         return false;
     }
 
-    const bool is_food = it.get_comestible()->comesttype == "FOOD";
+    const bool is_food = food.get_comestible()->comesttype == "FOOD";
 
-    if( is_food && guy.compute_effective_nutrients( it ).kcal() < min_kcal_for_food ) {
+    if( is_food && guy.compute_effective_nutrients( food ).kcal() < min_kcal_for_food ) {
         // not filling enough
         return false;
     }
     if( !is_food ) {
-        const int quench = it.get_comestible()->quench;
+        const int quench = food.get_comestible()->quench;
         // not quenching enough
         return quench >= min_quench &&
                // -20 is "Slaked"
