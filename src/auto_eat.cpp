@@ -241,6 +241,7 @@ std::list<item_craft_pair> auto_eat_settings::sort_food_lists( std::list<item_cr
             break;
         }
     }
+    clear();
     return to_eat_list;
 }
 
