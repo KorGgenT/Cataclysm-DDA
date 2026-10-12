@@ -8,6 +8,7 @@
 class Character;
 class item;
 class item_location;
+class nutrients;
 class recipe;
 class temp_crafting_inventory;
 
@@ -28,6 +29,10 @@ class auto_eat_settings
         int meal_size = 1000;
 
         bool avoid_crafting = false;
+
+        // for auto eat zone settings
+        bool avoid_food = false;
+        bool avoid_drink = false;
         // this is a rolling thirst value to queue up quench values for food
         // remember to reset it after use!
         int thirst_modifier = 0;
@@ -35,9 +40,9 @@ class auto_eat_settings
         int joy_score( const Character &guy, const item &food ) const;
         // spoilage absolutely needs item_location because of sealed containers
         int spoil_score( const Character &guy, const item_location &food ) const;
-        int calorie_score( const Character &guy, const item &food ) const;
+        int calorie_score( const nutrients &nuts ) const;
         int quench_score( const Character &guy, const item &food ) const;
-        int vitamin_score( const Character &guy, const item &food ) const;
+        int vitamin_score( const nutrients &nuts ) const;
 
         int score_food( const Character &guy, const item_location &food ) const;
         // outputs a list of all the food within crafting_inventory
@@ -52,6 +57,18 @@ class auto_eat_settings
         std::list<item_craft_pair> get_surrounding_available_food( Character &guy );
 
         void add_thirst( int thirst );
+        bool get_avoid_drink() {
+            return avoid_drink;
+        }
+        void set_avoid_drink( bool avoid = true ) {
+            avoid_drink = true;
+        }
+        bool get_avoid_food() {
+            return avoid_food;
+        }
+        void set_avoid_food( bool avoid = true ) {
+            avoid_food = true;
+        }
         // clears all temporary values
         void clear();
         int score_food( const Character &guy, const item_craft_pair &food ) const;

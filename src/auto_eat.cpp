@@ -94,9 +94,9 @@ int auto_eat_settings::spoil_score( const Character &guy, const item_location &f
     return 50;
 }
 
-int auto_eat_settings::calorie_score( const Character &guy, const item &food ) const
+int auto_eat_settings::calorie_score( const nutrients &nuts ) const
 {
-    return guy.compute_effective_nutrients( food ).kcal() / 10;
+    return nuts.kcal() / 10;
 }
 
 int auto_eat_settings::quench_score( const Character &guy, const item &food ) const
@@ -122,10 +122,11 @@ int auto_eat_settings::quench_score( const Character &guy, const item &food ) co
     return std::round( quench * thirst_multiplier );
 }
 
-int auto_eat_settings::vitamin_score( const Character &guy, const item &food ) const
+int auto_eat_settings::vitamin_score( const nutrients &nuts ) const
 {
+
     float total_score = 0.0f;
-    const std::map<vitamin_id, int> vit_map = guy.compute_effective_nutrients( food ).vitamins();
+    const std::map<vitamin_id, int> vit_map = nuts.vitamins();
     for( const vitamin_id &vit : healthy_vitamins ) {
         const auto vit_iter = vit_map.find( vit );
         if( vit_iter != vit_map.cend() ) {
@@ -144,8 +145,9 @@ int auto_eat_settings::score_food( const Character &guy, const item_location &fo
         debugmsg( "lost track of item_location when scoring food" );
         return INT_MIN;
     }
-    return spoil_score( guy, food ) + vitamin_score( guy, *food ) +
-           calorie_score( guy, *food ) + quench_score( guy, *food ) +
+    const nutrients nuts = guy.compute_effective_nutrients( *food );
+    return spoil_score( guy, food ) + vitamin_score( nuts ) +
+           calorie_score( nuts ) + quench_score( guy, *food ) +
            joy_score( guy, *food );
 }
 
@@ -167,11 +169,11 @@ bool auto_eat_settings::will_eat( const Character &guy, const item &food ) const
 
     const bool is_food = food.get_comestible()->comesttype == "FOOD";
 
-    if( is_food && guy.compute_effective_nutrients( food ).kcal() < min_kcal_for_food ) {
+    if( is_food && !avoid_food && guy.compute_effective_nutrients( food ).kcal() < min_kcal_for_food ) {
         // not filling enough
         return false;
     }
-    if( !is_food ) {
+    if( !is_food && !avoid_drink ) {
         const int quench = food.get_comestible()->quench;
         // not quenching enough
         return quench >= min_quench &&

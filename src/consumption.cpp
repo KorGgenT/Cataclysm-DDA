@@ -1139,6 +1139,21 @@ ret_val<edible_rating> Character::will_eat( const item &food, bool interactive )
     return ret_val<edible_rating>::make_success();
 }
 
+ret_val<edible_rating> avatar::will_auto_eat( const item &food, bool zone_override_food ) const
+{
+    bool cached_avoid_food = auto_eat_handler.get_avoid_food();
+    bool cached_avoid_drink = auto_eat_handler.get_avoid_drink();
+    if( zone_override_food ) {
+        auto_eat_handler.set_avoid_food();
+    } else {
+        auto_eat_handler.set_avoid_drink();
+    }
+    const ret_val<edible_rating> ret = will_auto_eat( food );
+    auto_eat_handler.set_avoid_food( cached_avoid_food );
+    auto_eat_handler.set_avoid_drink( cached_avoid_drink );
+    return ret;
+}
+
 ret_val<edible_rating> avatar::will_auto_eat( const item &food ) const
 {
     ret_val<edible_rating> ret = Character::will_auto_eat( food );
@@ -1148,14 +1163,35 @@ ret_val<edible_rating> avatar::will_auto_eat( const item &food ) const
     return ret;
 }
 
-ret_val<edible_rating> npc::will_auto_eat( const item &food ) const
+ret_val<edible_rating> npc::will_auto_eat( const auto_eat_settings &override_settings,
+        const item &food ) const
 {
     ret_val<edible_rating> ret = Character::will_auto_eat( food );
-    // npcs *always* use the default auto eat settings.
-    if( !auto_eat_settings().will_eat( *this, food ) ) {
+    if( !override_settings.will_eat( *this, food ) ) {
         return ret_val<edible_rating>::make_failure( edible_rating::NO_AUTO_EAT );
     }
     return ret;
+}
+
+ret_val<edible_rating> npc::will_auto_eat( const item &food, bool zone_override_food ) const
+{
+    auto_eat_settings override;
+    if( zone_override_food ) {
+        override.set_avoid_food();
+    } else {
+        override.set_avoid_drink();
+    }
+    return will_auto_eat( override, food );
+}
+
+ret_val<edible_rating> npc::will_auto_eat( const item &food ) const
+{
+    return will_auto_eat( auto_eat_settings(), food );
+}
+
+ret_val<edible_rating> Character::will_auto_eat( const item &food, bool ) const
+{
+    return will_auto_eat( food );
 }
 
 ret_val<edible_rating> Character::will_auto_eat( const item &food ) const

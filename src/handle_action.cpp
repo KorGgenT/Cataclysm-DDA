@@ -889,7 +889,9 @@ void avatar_action::eat_some( avatar &you )
         }
     }
 
-    you.assign_backlog_activity();
+    if( !you.backlog.empty() ) {
+        you.assign_backlog_activity();
+    }
 }
 
 static void smash( const std::optional<tripoint_bub_ms> &p = std::nullopt )
