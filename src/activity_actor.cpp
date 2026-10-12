@@ -6135,7 +6135,7 @@ void consume_activity_actor::finish( player_activity &act, Character &guy )
     act.interruptable = false;
 
     item_location consume_loc = consume_location;
-    const bool auto_eat = consume_loc->has_flag( json_flag_EAT_AFTER_CRAFT );
+    const bool auto_eat = consume_loc && consume_loc->has_flag( json_flag_EAT_AFTER_CRAFT );
 
     avatar &player_character = get_avatar();
     if( !was_canceled ) {
