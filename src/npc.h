@@ -1517,8 +1517,8 @@ class npc : public Character
         // npcs generally use the default eat settings. but when they don't, just pass it through
         ret_val<edible_rating> will_auto_eat( const auto_eat_settings &override_settings,
                                               const item &food ) const;
-        ret_val<edible_rating> will_auto_eat( const item &food ) const;
-        ret_val<edible_rating> will_auto_eat( const item &food, bool zone_override_food ) const;
+        ret_val<edible_rating> will_auto_eat( const item &food ) const override;
+        ret_val<edible_rating> will_auto_eat( const item &food, bool zone_override_food ) const override;
         // Execute the concrete action for a needs-category goal.
         // Owns target selection and progress tracking.
         need_result execute_need_goal( std::string_view goal );
