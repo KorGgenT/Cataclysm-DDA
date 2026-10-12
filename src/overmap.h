@@ -34,6 +34,7 @@
 #include "flat_set.h"
 #include "hash_utils.h"
 #include "horde_map.h"
+#include "larder.h"
 #include "map_scale_constants.h"
 #include "mapgendata.h"
 #include "mdarray.h"
@@ -711,7 +712,12 @@ class overmap
         void init_layers();
         // open existing overmap, or generate a new one
         void open( overmap_special_batch &enabled_specials );
+        std::unordered_map<tripoint_abs_omt, larder> larders;
     public:
+        // store the items into the larder
+        void add_larder( map &here, const tripoint_abs_omt &omt_point );
+        // put the items from the larder onto the map
+        void dump_larder( map &here, const tripoint_abs_omt &omt_point );
         // Get all values from omt_stack_arguments_map at the given point or nullopt if not set yet
         std::optional<mapgen_arguments> get_existing_omt_stack_arguments(
             const point_abs_omt &p ) const;

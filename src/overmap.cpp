@@ -3904,6 +3904,107 @@ shared_ptr_fast<npc> overmap::find_npc_by_unique_id( const std::string &id ) con
     return nullptr;
 }
 
+larder::tripoint_rating larder::rate_inside_point(
+    const map &here, const tripoint_bub_ms &local_point ) const
+{
+
+    const furn_id &furn_here = here.furn( local_point );
+    const ter_id &ter_here = here.ter( local_point );
+
+    if( !furn_here.is_valid() ) {
+        if( here.impassable( local_point ) ) {
+            // skip entirely
+            return tripoint_rating::never;
+        } else if( ter_here->movecost <= 100 ) {
+            return tripoint_rating::neutral;
+        } else {
+            return tripoint_rating::poor;
+        }
+    } else {
+        if( furn_here->max_volume > 1'000_liter ) {
+            return tripoint_rating::good;
+        } else if( furn_here->max_volume == 1'000_liter ) {
+            return tripoint_rating::poor;
+        } else {
+            return tripoint_rating::bad;
+        }
+    }
+}
+
+larder::tripoint_rating larder::rate_outside_point(
+    const map &here, const tripoint_bub_ms &local_point ) const
+{
+
+    const furn_id &furn_here = here.furn( local_point );
+    const ter_id &ter_here = here.ter( local_point );
+
+    if( !furn_here.is_valid() ) {
+        if( here.impassable( local_point ) ) {
+            // skip entirely
+            return tripoint_rating::never;
+        } else if( ter_here->movecost <= 100 ) {
+            return tripoint_rating::poor;
+        } else {
+            return tripoint_rating::bad;
+        }
+    } else {
+        if( furn_here->max_volume > 1'000_liter ) {
+            return tripoint_rating::neutral;
+        } else if( furn_here->max_volume == 1'000_liter ) {
+            return tripoint_rating::bad;
+        } else {
+            return tripoint_rating::never;
+        }
+    }
+}
+
+larder::tripoint_rating larder::rate_local_point(
+    const map &here, const tripoint_bub_ms &local_point ) const
+{
+    if( here.is_outside( local_point ) ) {
+        return rate_outside_point( here, local_point );
+    } else {
+        return rate_inside_point( here, local_point );
+    }
+}
+
+void overmap::dump_larder( map &here, const tripoint_abs_omt &omt_point )
+{
+    if( !here.inbounds( omt_point ) ) {
+        return;
+    }
+    auto hoard_iter = larders.find( omt_point );
+    if( hoard_iter == larders.end() ) {
+        // no op
+        return;
+    }
+    larder &hoard = hoard_iter->second;
+
+    tripoint_abs_ms northwest_corner = project_to<coords::ms>( omt_point );
+    tripoint_abs_ms southeast_corner = project_to<coords::ms>( omt_point +
+                                       tripoint_rel_omt::south_east ) - tripoint_rel_ms::north_west;
+
+    std::map<larder::tripoint_rating, std::deque<tripoint_bub_ms>> rated_points;
+    tripoint_bub_ms nw_bub = here.get_bub( northwest_corner );
+    tripoint_bub_ms se_bub = here.get_bub( southeast_corner );
+    // unfortunately we're going to have to narrow down where we want to drop stuff
+    for( const tripoint_bub_ms &local_point : here.points_in_rectangle( nw_bub , se_bub ) ) {
+        const larder::tripoint_rating rate = hoard.rate_local_point( here, local_point );
+        if( rate != larder::tripoint_rating::never ) {
+            rated_points[rate].push_back( local_point );
+        }
+    }
+
+    for( auto pt_vec_iter = rated_points.rbegin(); pt_vec_iter != rated_points.rend(); ++pt_vec_iter ) {
+        std::shuffle( pt_vec_iter->second.begin(), pt_vec_iter->second.end(), rng_get_engine() );
+        for( const tripoint_bub_ms &storage_point : pt_vec_iter->second ) {
+            if( hoard.dump_point( here, storage_point ) ) {
+                return;
+            }
+        }
+    }
+}
+
 void overmap::add_camp( const point_abs_omt &p, const basecamp &camp )
 {
     auto it = camps.emplace( p, camp );
