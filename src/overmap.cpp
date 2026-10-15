@@ -3971,6 +3971,7 @@ larder::tripoint_rating larder::rate_local_point(
 void overmap::dump_larder( map &here, const tripoint_abs_omt &omt_point )
 {
     if( !here.inbounds( omt_point ) ) {
+        debugmsg( "called dump_larder on omt not inbounds" );
         return;
     }
     auto hoard_iter = larders.find( omt_point );
@@ -3982,7 +3983,7 @@ void overmap::dump_larder( map &here, const tripoint_abs_omt &omt_point )
 
     tripoint_abs_ms northwest_corner = project_to<coords::ms>( omt_point );
     tripoint_abs_ms southeast_corner = project_to<coords::ms>( omt_point +
-                                       tripoint_rel_omt::south_east ) - tripoint_rel_ms::north_west;
+                                       tripoint_rel_omt::south_east ) + tripoint_rel_ms::north_west;
 
     std::map<larder::tripoint_rating, std::deque<tripoint_bub_ms>> rated_points;
     tripoint_bub_ms nw_bub = here.get_bub( northwest_corner );

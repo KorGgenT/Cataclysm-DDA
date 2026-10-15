@@ -7,12 +7,15 @@
 #include <unordered_map>
 
 #include "calendar.h"
+#include "coordinates.h"
 #include "type_id.h"
 #include "value_ptr.h"
 
 enum class pocket_type;
 
+class item;
 class item_location;
+class map;
 
 /**
  * larders are stashes of items created for and used by faction camps at overmap scale.
